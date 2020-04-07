@@ -18,7 +18,7 @@ linux:
 histogram:
 	cmd.exe /c g++ -DHISTOGRAM main.cpp IsoSurface.cpp Volume.cpp WindowManagement.cpp Model.cpp Camera.cpp VAO.cpp Shader.cpp glad/glad.c -o main.exe $(CCFLAGS)
 	./main.exe
-	cmd.exe /c python historgram.py
+	cmd.exe /c python histogram.py
 iso:
 	cmd.exe /c g++ testIsoSurface.cpp IsoSurface.cpp Volume.cpp -Wall -o iso.exe
 	./iso.exe
