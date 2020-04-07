@@ -1,11 +1,18 @@
-args=-lglfw3 -lopengl32 -lgdi32
+windows-args = -lglfw3 -lopengl32 -lgdi32
+linux-args   = -lglfw3 -pthread -lXrandr -lXxf86vm -lXi -lXinerama -lX11 -ldl -lXcursor
+
+ifeq ($(OS),Windows_NT)
+	CCFLAGS = $(windows-args)
+else
+	CCFLAGS = $(linux-args)
+endif
 
 default:
-	cmd.exe /c g++ main.cpp IsoSurface.cpp Volume.cpp WindowManagement.cpp Model.cpp Camera.cpp VAO.cpp Shader.cpp glad/glad.c -o main.exe $(args)
+	cmd.exe /c g++ main.cpp IsoSurface.cpp Volume.cpp WindowManagement.cpp Model.cpp Camera.cpp VAO.cpp Shader.cpp glad/glad.c -o main.exe $(CCFLAGS)
 	./main.exe
 
 histogram:
-	cmd.exe /c g++ -DHISTOGRAM main.cpp IsoSurface.cpp Volume.cpp WindowManagement.cpp Model.cpp Camera.cpp VAO.cpp Shader.cpp glad/glad.c -o main.exe $(args)
+	cmd.exe /c g++ -DHISTOGRAM main.cpp IsoSurface.cpp Volume.cpp WindowManagement.cpp Model.cpp Camera.cpp VAO.cpp Shader.cpp glad/glad.c -o main.exe $(CCFLAGS)
 	./main.exe
 	cmd.exe /c python historgram.py
 iso:
@@ -17,5 +24,5 @@ testVolume:
 	./testVolume.exe
 
 test2vao:
-	cmd.exe /c g++ test2vao.cpp glad/glad.c -o test2vao.exe $(args)
+	cmd.exe /c g++ test2vao.cpp glad/glad.c -o test2vao.exe $(CCFLAGS)
 	./test2vao.exe
