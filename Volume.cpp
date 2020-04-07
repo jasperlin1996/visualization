@@ -9,7 +9,7 @@ Volume::Volume(){
     this->endian      = ENDIAN::LITTLE;
     this->byteSize    = 1;
     this->resolution  = glm::ivec3(0, 0, 0);
-    this->voxelSize   = glm::vec3(0.0f, 0.0f, 0.0f);
+    this->voxelSize   = glm::vec3(1.0f, 1.0f, 1.0f);
 }
 Volume::Volume(string infFilename, string rawFilename){
     this->infFilename = infFilename;
@@ -17,6 +17,8 @@ Volume::Volume(string infFilename, string rawFilename){
     this->sampleType  = TYPE::UNSIGNED_CHAR;
     this->endian      = ENDIAN::LITTLE;
     this->byteSize    = 1;
+    this->resolution  = glm::ivec3(0, 0, 0);
+    this->voxelSize   = glm::vec3(1.0f, 1.0f, 1.0f);
 
     readInfo(this->infFilename);
     if(sampleType == TYPE::UNSIGNED_CHAR){
