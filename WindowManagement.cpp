@@ -138,6 +138,12 @@ void WindowManagement::key_callback(GLFWwindow * window, int key, int scancode, 
         case GLFW_KEY_KP_SUBTRACT:
             this->myCamera.update_far(-10.0);
             break;
+        case GLFW_KEY_C:
+            this->myModel.update_clip(10.0);
+            break;
+        case GLFW_KEY_V:
+            this->myModel.update_clip(-10.0);
+            break;
         default:
             break;
     }
