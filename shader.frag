@@ -9,7 +9,7 @@ uniform vec3 light_pos;
 uniform vec3 view_pos; 
 uniform vec3 light_color;
 
-varying float check;
+in float check;
 
 void main()
 {

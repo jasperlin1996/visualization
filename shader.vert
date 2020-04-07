@@ -11,7 +11,7 @@ uniform mat4 model;
 uniform mat4 matrix;
 
 uniform vec4 ClipPlane;
-varying float check;
+out float check;
 
 void main()
 {
