@@ -96,7 +96,7 @@ void WindowManagement::mainLoop(){
         this->myShader->use();
 
         // draw some shit
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        
         this->myModel.draw(this->myShader, this->myCamera);
         // check and call events and swap the buffers
         glfwSwapBuffers(this->window);
