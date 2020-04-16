@@ -57,7 +57,7 @@ public:
                 }
             }
         }
-        
+
         int x_edge = this->resolution.x - 1, y_edge = this->resolution.y - 1, z_edge = this->resolution.z - 1;
 
         for(int x = 0; x < this->resolution.x; x++){
@@ -90,6 +90,7 @@ public:
 #ifdef HISTOGRAM
         store_data("histogram.txt");
 #endif
+        delete [] buffer; 
     }
     
 private:

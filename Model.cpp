@@ -32,6 +32,8 @@ Model::Model(float width, float height) : Model::Model() {
     Model::view = glm::lookAt(glm::vec3(0.0f, 0.0f, 300.0f),
                             glm::vec3(0.0f, 0.0f, -1.0f),
                             glm::vec3(0.0f, 1.0f, 0.0f));
+
+    this->clip = 0.0f;
 }
 
 void Model::update(){
@@ -54,7 +56,6 @@ void Model::draw(Shader *myShader, Camera myCamera){
     Model::view = glm::lookAt(myCamera.get_position(), myCamera.get_position() + myCamera.get_direction(), myCamera.get_up());
     // if material, put material here
     
-    glUniform3fv(glGetUniformLocation(myShader->ID, "color"), 1, glm::value_ptr(glm::vec3(0.3f, 0.5f, 0.3f)));
     // glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "view"), 1, GL_FALSE, glm::value_ptr(Model::view));
     // glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "projection"), 1, GL_FALSE, glm::value_ptr(Model::projection));
     glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(Model::model));
@@ -65,5 +66,11 @@ void Model::draw(Shader *myShader, Camera myCamera){
     glUniform3fv(glGetUniformLocation(myShader->ID, "light_pos"), 1, glm::value_ptr(-myCamera.get_position()));
     glUniform3fv(glGetUniformLocation(myShader->ID, "view_pos"), 1, glm::value_ptr(myCamera.get_position()));
     glUniform3fv(glGetUniformLocation(myShader->ID, "light_color"), 1, glm::value_ptr(glm::vec3(1.0f)));
-    VAOManagement::drawVAO(vao);
+
+    glUniform4fv(glGetUniformLocation(myShader->ID, "ClipPlane"), 1, glm::value_ptr(glm::vec4(-1.0f, -1.0f, -1.0f, this->clip)));
+    VAOManagement::drawVAO(vao, myShader);
+}
+
+void Model::update_clip(float clip){
+    this->clip += clip;
 }

@@ -8,7 +8,7 @@ else
 endif
 
 default:
-	cmd.exe /c g++ main.cpp IsoSurface.cpp Volume.cpp WindowManagement.cpp Model.cpp Camera.cpp VAO.cpp Shader.cpp glad/glad.c -o main.exe $(windows-args)
+	cmd.exe /c g++ -std=c++17 main.cpp IsoSurface.cpp Volume.cpp WindowManagement.cpp Model.cpp Camera.cpp VAO.cpp Shader.cpp glad/glad.c -o main.exe $(windows-args)
 	./main.exe
 
 linux:

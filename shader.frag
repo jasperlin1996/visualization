@@ -9,13 +9,18 @@ uniform vec3 light_pos;
 uniform vec3 view_pos; 
 uniform vec3 light_color;
 
+in float check;
+
 void main()
 {
+    
     frag_color = vec4(our_color, 1.0f);
+
+    if(check < 0.0) {
+        discard;
+    }
     
     vec3 norm = normalize(normal);
-    
-    
 
     vec3 light_direction = normalize(light_pos - frag_pos);
     vec3 view_direction = normalize(view_pos - frag_pos);

@@ -2,6 +2,8 @@
 
 #include "glad/glad.h"
 #include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "Shader.h"
 #include <vector>
 #include <iostream>
 
@@ -21,5 +23,5 @@ public:
     // static VAO generateVAO(vector<pair<PositionVec3, NormalVec3> > vertexData);
     // static VAO generateVAO(vector<PositionVec3> vertexData);
     static VAO generateVAO(vector<float> vertexData);
-    static void drawVAO(vector<VAO>);
+    static void drawVAO(vector<VAO>, Shader *);
 };
