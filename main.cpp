@@ -7,7 +7,7 @@
 using namespace std;
 
 int main(){
-    IsoSurface iso("./Data/Scalar/cthead.inf", "./Data/Scalar/cthead.raw", 1600);
+    IsoSurface iso("./Data/Scalar/engine.inf", "./Data/Scalar/engine.raw", 80);
     // IsoSurface iso("./TestData/TestData.inf", "./TestData/TestData.raw", 3);
     iso.run();
 
