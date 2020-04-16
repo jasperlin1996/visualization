@@ -1,5 +1,6 @@
 windows-args = -lglfw3 -lopengl32 -lgdi32
 linux-args   = -lglfw3 -pthread -lXrandr -lXxf86vm -lXi -lXinerama -lX11 -ldl -lXcursor
+IMGUI_CPP_FILES = imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_widgets.cpp imgui/imgui_impl_glfw.cpp imgui/imgui_impl_opengl3.cpp
 
 ifeq ($(OS),Windows_NT)
 	CCFLAGS = $(windows-args)
