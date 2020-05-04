@@ -1,6 +1,7 @@
 windows-args = -lglfw3 -lopengl32 -lgdi32
 linux-args   = -lglfw3 -pthread -lXrandr -lXxf86vm -lXi -lXinerama -lX11 -ldl -lXcursor
-IMGUI_CPP_FILES = imgui/imgui.cpp imgui/imgui_draw.cpp imgui/imgui_widgets.cpp imgui/imgui_impl_glfw.cpp imgui/imgui_impl_opengl3.cpp
+IMGUI_SOURCE_FILES = src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_widgets.cpp src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp
+GLAD_SOURCE_FILES = src/glad/*.c
 
 ifeq ($(OS),Windows_NT)
 	CCFLAGS = $(windows-args)
@@ -9,7 +10,7 @@ else
 endif
 
 default:
-	cmd.exe /c g++ -std=c++17 main.cpp IsoSurface.cpp Volume.cpp WindowManagement.cpp Model.cpp Camera.cpp VAO.cpp Shader.cpp glad/glad.c -o main.exe $(windows-args)
+	cmd.exe /c g++ -std=c++17 -I./include main.cpp IsoSurface.cpp Volume.cpp WindowManagement.cpp Model.cpp Camera.cpp VAO.cpp Shader.cpp $(IMGUI_SOURCE_FILES) $(GLAD_SOURCE_FILES) -o main.exe $(windows-args)
 	./main.exe
 
 linux:

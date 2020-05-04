@@ -34,6 +34,9 @@ Model::Model(float width, float height) : Model::Model() {
                             glm::vec3(0.0f, 1.0f, 0.0f));
 
     this->clip = 0.0f;
+    this->x = -1.0f;
+    this->y = -1.0f;
+    this->z = -1.0f;
 }
 
 void Model::update(){
@@ -67,10 +70,13 @@ void Model::draw(Shader *myShader, Camera myCamera){
     glUniform3fv(glGetUniformLocation(myShader->ID, "view_pos"), 1, glm::value_ptr(myCamera.get_position()));
     glUniform3fv(glGetUniformLocation(myShader->ID, "light_color"), 1, glm::value_ptr(glm::vec3(1.0f)));
 
-    glUniform4fv(glGetUniformLocation(myShader->ID, "ClipPlane"), 1, glm::value_ptr(glm::vec4(-1.0f, -1.0f, -1.0f, this->clip)));
+    glUniform4fv(glGetUniformLocation(myShader->ID, "ClipPlane"), 1, glm::value_ptr(glm::vec4(this->x, this->y, this->z, this->clip)));
     VAOManagement::drawVAO(vao, myShader);
 }
 
-void Model::update_clip(float clip){
-    this->clip += clip;
+void Model::update_clip(float clip, float x, float y, float z){
+    this->x = x;
+    this->y = y;
+    this->z = z;
+    this->clip = clip;
 }

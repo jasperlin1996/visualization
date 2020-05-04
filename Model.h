@@ -13,7 +13,7 @@ public:
     Model(float, float);
     void draw(Shader *, Camera);
     void update();
-    void update_clip(float);
+    void update_clip(float, float, float, float);
     static void normalize(glm::vec3);
     static glm::mat4 model;
     static glm::mat4 view;
@@ -21,7 +21,7 @@ public:
     static float width, height;
     static vector<VAO> vao;
     static glm::vec3 position;
-    float clip;
+    float clip, x, y, z;
 
 private:
     glm::mat4 rotateMatrix;

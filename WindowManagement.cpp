@@ -27,6 +27,10 @@ bool WindowManagement::init(float w, float h, string window_name) {
 
     this->window = glfwCreateWindow((int)w, (int)h, window_name.c_str(), NULL, NULL);
     glfwMakeContextCurrent(this->window);
+
+    // FPS
+    glfwSwapInterval(1);
+
     if(this->window == NULL){
         cout << "Failed to create GLFW window" << endl;
         return false;
@@ -35,6 +39,16 @@ bool WindowManagement::init(float w, float h, string window_name) {
         cout << "Failed to initialize GLAD" << endl;
         return false;
     }
+
+    // IMGUI
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+
+    ImGui::StyleColorsDark();
+    ImGui_ImplGlfw_InitForOpenGL(this->window, true);
+    ImGui_ImplOpenGL3_Init("#version 430");
+    //
     this->width = w;
     this->height = h;
     this->last_x = w/2;
@@ -87,6 +101,34 @@ void WindowManagement::framebuffer_callback(GLFWwindow * w, int width, int heigh
 
 void WindowManagement::mainLoop(){
     while(!glfwWindowShouldClose(this->window)){
+        // IMGUI
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        // UI Design
+        // set Controller position and size
+        ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Once);
+        ImGui::SetNextWindowSize(ImVec2(this->width / 3, this->height / 4), ImGuiCond_Once);
+
+        ImGui::Begin("Tuning");
+        ImGui::Text("Slicing Plane");
+        static float clip = 0.0f, x = -1.0f, y = -1.0f, z = -1.0f;
+
+        ImGui::SliderFloat("x", &x, -1.0f, 1.0f);
+        ImGui::SliderFloat("y", &y, -1.0f, 1.0f);
+        ImGui::SliderFloat("z", &z, -1.0f, 1.0f);
+        ImGui::SliderFloat("clip", &clip, -100.0f, 100.0f);
+        {
+            float length = sqrt(x*x+y*y+z*z);
+            if (length <= 0.01) length = 0.01;
+            x /= length;
+            y /= length;
+            z /= length;
+            this->myModel.update_clip(clip, x, y, z);
+        }
+        ImGui::End();
+        //
 
         glfwGetFramebufferSize(this->window, (int*)&(this->width), (int*)&(this->height));
         
@@ -99,6 +141,11 @@ void WindowManagement::mainLoop(){
         
         this->myModel.draw(this->myShader, this->myCamera);
         // check and call events and swap the buffers
+
+        // IMGUI
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+        //
         glfwSwapBuffers(this->window);
         glfwPollEvents();
     }
@@ -109,6 +156,8 @@ void WindowManagement::scroll_callback(GLFWwindow * w, double x_offset, double y
 }
 
 void WindowManagement::mouse_callback(GLFWwindow * window, double x_pos, double y_pos){
+    if(ImGui::IsAnyMouseDown() && ImGui::IsAnyWindowFocused()) return;
+
     float x_offset = x_pos - this->last_x;
     float y_offset = y_pos - this->last_y;
     this->last_x = x_pos;
@@ -138,12 +187,12 @@ void WindowManagement::key_callback(GLFWwindow * window, int key, int scancode, 
         case GLFW_KEY_KP_SUBTRACT:
             this->myCamera.update_far(-10.0);
             break;
-        case GLFW_KEY_C:
-            this->myModel.update_clip(10.0);
-            break;
-        case GLFW_KEY_V:
-            this->myModel.update_clip(-10.0);
-            break;
+        // case GLFW_KEY_C:
+        //     this->myModel.update_clip(10.0, this->myModel.x, this->myModel.y, this->myModel.z);
+        //     break;
+        // case GLFW_KEY_V:
+        //     this->myModel.update_clip(-10.0, this->myModel.x, this->myModel.y, this->myModel.z);
+        //     break;
         default:
             break;
     }
