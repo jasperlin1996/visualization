@@ -3,6 +3,7 @@
 #include "Shader.h"
 #include "VAO.h"
 #include "Model.h"
+#include "IsoSurface.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -22,6 +23,7 @@ public:
     void mouse_callback(GLFWwindow *, double, double);
     void scroll_callback(GLFWwindow *, double, double);
     void framebuffer_callback(GLFWwindow *, int, int);
+    void load_model();
 
 private:
     float width, height, last_x, last_y;

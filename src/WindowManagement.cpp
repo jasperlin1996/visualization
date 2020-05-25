@@ -110,8 +110,12 @@ void WindowManagement::mainLoop(){
         // set Controller position and size
         ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Once);
         ImGui::SetNextWindowSize(ImVec2(this->width / 3, this->height / 4), ImGuiCond_Once);
-
-        ImGui::Begin("Tuning");
+        
+        ImGui::Begin("Setting");
+        ImGui::Text("Select Model");
+        if (ImGui::Button("Load")) {
+            this->load_model();
+        }
         ImGui::Text("Slicing Plane");
         static float clip = 0.0f, x = -1.0f, y = -1.0f, z = -1.0f;
 
@@ -235,4 +239,19 @@ bool WindowManagement::init(int w, int h, string window_name, vector<PositionVec
     glEnable(GL_CULL_FACE);
 
     return (this->window == NULL ? false : true);
+}
+
+
+void WindowManagement::load_model(){
+    string model_name = "./Data/Scalar/engine.inf";
+    IsoSurface iso("./Data/Scalar/engine.inf", "./Data/Scalar/engine.raw", 80);
+    iso.run();
+
+    glm::vec3 data_shape = iso.get_shape();
+    data_shape = -data_shape/2.0f;
+    data_shape *= iso.get_voxel_size();
+
+    Model::normalize(data_shape);
+
+    this->set_vao_data(iso.get_data());
 }
