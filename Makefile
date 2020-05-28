@@ -1,5 +1,7 @@
 windows-args = -lglfw3 -lopengl32 -lgdi32
 linux-args   = -lglfw3 -pthread -lXrandr -lXxf86vm -lXi -lXinerama -lX11 -ldl -lXcursor
+macos-args   = -stdlib=libc++ -lglfw -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo -framework Carbon
+
 IMGUI_SOURCE_FILES = src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_widgets.cpp src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp
 GLAD_SOURCE_FILES = src/glad/*.c
 
@@ -15,8 +17,8 @@ SOURCES += $(wildcard src/imgui/*.cpp)
 
 OBJS    = $(addprefix $(OBJ_DIR)/, $(addsuffix .o, $(basename $(notdir $(SOURCES)))))
 LIBS    = -L./lib
-CXXFLAGS= -std=c++17 -I./include
 
+CXXFLAGS= -std=c++17 -I./include
 
 mkdir = 
 rm = 
@@ -36,6 +38,16 @@ else ifeq ($(findstring Microsoft, $(shell uname -a)), Microsoft)
 
 	mkdir = mkdir -p $(OBJ_DIR)
     
+	rm = rm *.exe *.out imgui.ini
+	rm = rm -rf $(OBJ_DIR)
+else ifeq ($(findstring Darwin, $(shell uname -a)), Darwin)
+	CXX = clang++
+	EXE = main
+
+	LIBS += $(macos-args)
+	#CXXFLAGS += -DGLFW_MINOR_VERSION
+	mkdir = mkdir -p $(OBJ_DIR)
+
 	rm = rm *.exe *.out imgui.ini
 	rm = rm -rf $(OBJ_DIR)
 else

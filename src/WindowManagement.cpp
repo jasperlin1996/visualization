@@ -1,5 +1,11 @@
 #include "WindowManagement.h"
 
+#ifdef __APPLE__
+    #define GLFW_MINOR_VERSION 1
+#else
+    #define GLFW_MINOR_VERSION 3
+#endif
+
 using namespace std;
 
 WindowManagement::WindowManagement()
@@ -22,9 +28,11 @@ bool WindowManagement::init(float w, float h, string window_name) {
 
     // window init
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, GLFW_MINOR_VERSION);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+#ifdef __APPLE__
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
     this->window = glfwCreateWindow((int)w, (int)h, window_name.c_str(), NULL, NULL);
     glfwMakeContextCurrent(this->window);
 
@@ -47,7 +55,11 @@ bool WindowManagement::init(float w, float h, string window_name) {
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(this->window, true);
+#ifdef __APPLE__
+    ImGui_ImplOpenGL3_Init("#version 410");
+#else
     ImGui_ImplOpenGL3_Init("#version 430");
+#endif
     //
     this->width = w;
     this->height = h;
@@ -217,7 +229,7 @@ bool WindowManagement::init(int w, int h, string window_name, vector<PositionVec
 
     // window init
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, GLFW_MINOR_VERSION);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     this->window = glfwCreateWindow((int)w, (int)h, window_name.c_str(), NULL, NULL);
