@@ -33,6 +33,8 @@ public:
     void store_data(string);
     glm::vec3 get_gradient(glm::vec3);
     glm::vec3 get_voxel_size();
+    float min = INT_MAX, max = INT_MIN; // not good
+
     template <typename T> void readData(string rawFilename){
         fstream fs;
         fs.open(rawFilename, ios::in | ios::binary);
@@ -54,6 +56,8 @@ public:
                     T typeBridge;
                     memcpy(&typeBridge, buffer + index, this->byteSize);
                     this->data[x][y][z] = (float)typeBridge;
+                    if(this->data[x][y][z] < min) min = this->data[x][y][z];
+                    if(this->data[x][y][z] > max) max = this->data[x][y][z];
                 }
             }
         }
