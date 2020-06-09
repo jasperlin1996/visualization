@@ -11,3 +11,5 @@ testVolume.cpp
 testVolume.exe
 histogram.txt
 main.exe
+.vscode/
+imgui.ini

@@ -10,6 +10,9 @@ Volume::Volume(){
     this->byteSize    = 1;
     this->resolution  = glm::ivec3(0, 0, 0);
     this->voxelSize   = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    this->min = 0.0f;
+    this->max = 0.0f;
 }
 Volume::Volume(string infFilename, string rawFilename){
     this->infFilename = infFilename;
@@ -43,6 +46,8 @@ Volume::Volume(string infFilename, string rawFilename){
         readData<float>(this->rawFilename);
     }
 }
+
+
 Volume::~Volume(){
 
 }

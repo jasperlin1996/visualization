@@ -5,12 +5,13 @@ macos-args   = -stdlib=libc++ -lglfw -framework Cocoa -framework OpenGL -framewo
 IMGUI_SOURCE_FILES = src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_widgets.cpp src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp
 GLAD_SOURCE_FILES = src/glad/*.c
 
+RECONSTRUCT_TEST = src/VolumeRendering.cpp src/Model.cpp src/WindowManagement.cpp src/IsoSurface.cpp
 
 OBJ_DIR = obj
 LIB_DIR = lib
 
 
-SOURCES = $(wildcard src/*.cpp)
+SOURCES = $(filter-out $(RECONSTRUCT_TEST), $(wildcard src/*.cpp))
 SOURCES += $(wildcard src/glad/*.c)
 SOURCES += $(wildcard src/imgui/*.cpp)
 
@@ -18,7 +19,7 @@ SOURCES += $(wildcard src/imgui/*.cpp)
 OBJS    = $(addprefix $(OBJ_DIR)/, $(addsuffix .o, $(basename $(notdir $(SOURCES)))))
 LIBS    = -L./lib
 
-CXXFLAGS= -std=c++17 -I./include
+CXXFLAGS= -std=c++17 -I./include -Wall
 
 mkdir = 
 rm = 

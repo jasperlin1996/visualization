@@ -24,4 +24,5 @@ public:
     // static VAO generateVAO(vector<PositionVec3> vertexData);
     static VAO generateVAO(vector<float> vertexData);
     static void drawVAO(vector<VAO>, Shader *);
+    static void drawVAO(vector<VAO>, GLenum, GLenum);
 };
