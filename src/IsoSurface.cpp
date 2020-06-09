@@ -4,19 +4,34 @@
 // #define OUTPUT
 using namespace std;
 
-IsoSurface::IsoSurface(string infFilename, string rawFilename, int isovalue){
-    this->infFilename = infFilename;
-    this->rawFilename = rawFilename;
-    this->isovalue = isovalue;
+IsoSurface::IsoSurface(string inf_filename, string raw_filename)
+    : super::Method(inf_filename, raw_filename){
+    this->data_shape = super::data_shape;
+    this->voxel_size = super::voxel_size;
+}
+
+IsoSurface::IsoSurface(string inf_filename, string raw_filename, int iso_value)
+    : super::Method(inf_filename, raw_filename){
+    this->data_shape = super::data_shape;
+    this->voxel_size = super::voxel_size;
+    this->set_iso_value(iso_value);
+}
+
+IsoSurface::~IsoSurface(){
+
+}
+
+void IsoSurface::set_iso_value(int iso_value){
+    this->iso_value = iso_value;
 }
 
 glm::vec3 IsoSurface::vertex_interpolation(glm::vec3 p1, glm::vec3 p2, float v1, float v2){
     double mu;
     glm::vec3 intp_point; // interpolate point
-    if(fabs(this->isovalue - v1) < ZERO) return p1;
-    if(fabs(this->isovalue - v2) < ZERO) return p2;
+    if(fabs(this->iso_value - v1) < ZERO) return p1;
+    if(fabs(this->iso_value - v2) < ZERO) return p2;
     if(fabs(v1 - v2) < ZERO) return p1;
-    mu = (this->isovalue - v1) / (v2 - v1);
+    mu = (this->iso_value - v1) / (v2 - v1);
     intp_point.x = p1.x + mu * (p2.x - p1.x);
     intp_point.y = p1.y + mu * (p2.y - p1.y);
     intp_point.z = p1.z + mu * (p2.z - p1.z);
@@ -32,10 +47,10 @@ pair<glm::vec3, glm::vec3> IsoSurface::gradient_interpolation(glm::vec3 p1, glm:
     g1 *= this->voxel_size;
     g2 *= this->voxel_size;
 
-    if(fabs(this->isovalue - v1) < ZERO) return make_pair(p1, g1);
-    if(fabs(this->isovalue - v2) < ZERO) return make_pair(p2, g2);
+    if(fabs(this->iso_value - v1) < ZERO) return make_pair(p1, g1);
+    if(fabs(this->iso_value - v2) < ZERO) return make_pair(p2, g2);
     if(fabs(v1 - v2) < ZERO) return make_pair(p1, g1);
-    mu = (this->isovalue - v1) / (v2 - v1);
+    mu = (this->iso_value - v1) / (v2 - v1);
 
     intp_point = p1 + mu * (p2 - p1);
     intp_gradient = g1 + mu *(g2 - g1);
@@ -63,22 +78,18 @@ void IsoSurface::surface_intersection(pair<glm::vec3, glm::vec3> vertex_list[], 
     // return vertex_list;
 }
 void IsoSurface::run(){
-    // Volume v("./Data/Scalar/Engine.inf", "./Data/Scalar/Engine.raw");
-    // Volume v("./TestData/TestData.inf", "./TestData/TestData.raw");
-    Volume v(this->infFilename, this->rawFilename);
-
-    this->data_shape = v.get_shape();
-    this->voxel_size = v.get_voxel_size();
-    for(int i = 0; i < 3; i++){
-        cout << data_shape[i] << (i==2 ? '\n' : ' ');
-    }
-    // vector<float> triangles = this->data;
+    cout << "Run Iso Surface\n";
     glm::vec3 grid[8];
     glm::vec3 grid_gradient[8];
     float grid_value[8];
-    for(int x = 0; x < data_shape.x - 1; x++){
-        for(int y = 1; y < data_shape.y; y++){
-            for(int z = 0; z < data_shape.z - 1; z++){
+
+    // clear vector data
+    this->data.clear();
+    // this->data.shrink_to_fit(); // real time needs speed, not space
+
+    for(int x = 0; x < this->data_shape.x - 1; x++){
+        for(int y = 1; y < this->data_shape.y; y++){
+            for(int z = 0; z < this->data_shape.z - 1; z++){
                 int cubeindex = 0, setter = 1;
                 grid[0] = glm::vec3(x,y,z);
                 grid[1] = glm::vec3(x,y,z+1);
@@ -89,14 +100,15 @@ void IsoSurface::run(){
                 grid[6] = glm::vec3(x+1,y-1,z+1);
                 grid[7] = glm::vec3(x+1,y-1,z);
                 for(int index = 0; index < 8; index++, setter <<= 1){
-                    grid_value[index] = v(grid[index]);
-                    grid_gradient[index] = v.get_gradient(grid[index]); //
-                    if(grid_value[index] < this->isovalue) cubeindex |= setter;
+                    grid_value[index] = super::volume(grid[index]);
+                    grid_gradient[index] = super::volume.get_gradient(grid[index]); //
+                    if(grid_value[index] < this->iso_value) cubeindex |= setter;
                 }
 
                 if (cubeindex == 0 || cubeindex == 0xff) continue;
                 // search from edge table
                 int edges = edgeTable[cubeindex];
+
                 pair<glm::vec3, glm::vec3> vertex_list[12];
                 surface_intersection(vertex_list, grid, grid_value, grid_gradient, edges);
                 int vertex_count = 0, triangle_count = 0;
@@ -117,6 +129,7 @@ void IsoSurface::run(){
 #endif
                 triangle_count = vertex_count/3;
                 for(int i = 0; triTable[cubeindex][i] != -1; i += 3){
+                    // cout << vertex_list[triTable[cubeindex][i]].first[0] << endl;
                     this->data.push_back(vertex_list[triTable[cubeindex][i]].first[0]);
                     this->data.push_back(vertex_list[triTable[cubeindex][i]].first[1]);
                     this->data.push_back(vertex_list[triTable[cubeindex][i]].first[2]);

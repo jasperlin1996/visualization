@@ -80,7 +80,6 @@ VAO VAOManagement::generateVAO(vector<float> vertexData){
     glBindVertexArray(0);
 
     myVAO.count = vertexData.size() / (DIMENSION * ATTRIBUTES);
-    // cout << "VAO count: " << myVAO.count << endl;
 
     return myVAO;
 }
@@ -104,7 +103,6 @@ void VAOManagement::drawVAO(vector<VAO> vao, Shader *myShader){
 
 void VAOManagement::drawVAO(vector<VAO> vao, GLenum render_mode = GL_TRIANGLES, GLenum rasterize_mode = GL_FILL){
     for(int i = 0; i < vao.size(); i++){
-        // cout << "vao.size(): " << vao.size() << endl;
         // glUniform3fv(glGetUniformLocation(myShader->ID, "color"), 1, glm::value_ptr(glm::vec3(0.25f, 0.45f, 0.25f)));
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         // glBindVertexArray(vao[i].vao);
