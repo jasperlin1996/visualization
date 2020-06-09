@@ -10,7 +10,7 @@
 class Transformation{
 public:
     Transformation();
-    // Transformation(float, float);
+    Transformation(float, float);
     void update_clip(float, float, float, float);
     void normalize_object_position(glm::vec3);
     void set_model();

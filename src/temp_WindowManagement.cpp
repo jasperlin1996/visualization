@@ -185,9 +185,10 @@ bool WindowManagement::init(float w, float h, string window_name) {
 
     // // init Model
     // this->myModel = Model(w, h);
-
+    this->transformation = Transformation((float)w, (float)h);
     cout << "Createing Shader...\n";
     this->shaders[METHODS::ISO_SURFACE] = Shader("./shader.vert", "./shader.frag");
+    cout << "Shader ID: " << this->shaders[METHODS::ISO_SURFACE].ID << endl;
     // this->shaders[METHODS::VOLUME_RENDERING] = Shader("./shader.vert", "./shader.frag");
     cout << "Shader Created!\n";
 
@@ -283,7 +284,7 @@ void WindowManagement::gui(){
     }
 
     if (ImGui::BeginCombo("Filename", selected_filename.c_str())) {
-        for (auto i = 0; i < this->filenames.size(); i++) {
+        for (size_t i = 0; i < this->filenames.size(); i++) {
             bool selected = (selected_method == this->filenames[i]);
             
             if (ImGui::Selectable(this->filenames[i].c_str(), selected)) {
@@ -462,34 +463,41 @@ void WindowManagement::draw(){
     //   Enable/disable Model(s) by their METHODS
     //   Different METHODS have different Shader
     for (size_t i = 0; i < this->models.size(); i++) {
-        Transformation temp_transformation;
+        // Transformation temp_transformation;
+        this->shaders[METHODS::ISO_SURFACE].use();
         glm::vec3 data_shape = ((this->models[i]).method)->data_shape;
         data_shape = -data_shape/2.0f;
         data_shape *= ((this->models[i]).method)->voxel_size;
 
-        temp_transformation.normalize_object_position(data_shape);
-        temp_transformation.set_model();
-        temp_transformation.set_view(this->myCamera);
-        temp_transformation.set_projection(this->myCamera);
+        // temp_transformation.normalize_object_position(data_shape);
+        // temp_transformation.set_model();
+        // temp_transformation.set_view(this->myCamera);
+        // temp_transformation.set_projection(this->myCamera);
 
-        temp_transformation.run();
+        // temp_transformation.run();
+
+        // this->transformation.normalize_object_position(data_shape);
+        this->transformation.set_model();
+        this->transformation.set_view(this->myCamera);
+        this->transformation.set_projection(this->myCamera);
+        this->transformation.run();
 
         if (this->models[i].get_method_choice() == METHODS::ISO_SURFACE) {
             // TODO check if value_ptr is needed
-            // this->shaders[METHODS::ISO_SURFACE].use();
+            this->shaders[METHODS::ISO_SURFACE].use();
             this->shaders[METHODS::ISO_SURFACE].set_uniform("color", glm::vec3(0.3f, 0.5f, 0.3f));
         
 
             // this->shaders[METHODS::ISO_SURFACE].set_uniform("model", this->transformation.model);
             // this->shaders[METHODS::ISO_SURFACE].set_uniform("matrix", this->transformation.matrix);
-            this->shaders[METHODS::ISO_SURFACE].set_uniform("model", temp_transformation.model);
-            this->shaders[METHODS::ISO_SURFACE].set_uniform("matrix", temp_transformation.matrix);
+            this->shaders[METHODS::ISO_SURFACE].set_uniform("model", this->transformation.model);
+            this->shaders[METHODS::ISO_SURFACE].set_uniform("matrix", this->transformation.matrix);
             this->shaders[METHODS::ISO_SURFACE].set_uniform("light_pos", -this->myCamera.get_position());
             this->shaders[METHODS::ISO_SURFACE].set_uniform("view_pos", this->myCamera.get_position());
             this->shaders[METHODS::ISO_SURFACE].set_uniform("light_color", glm::vec3(1.0f));
             this->shaders[METHODS::ISO_SURFACE].set_uniform("ClipPlane", glm::vec4(this->x, this->y, this->z, this->clip));
         }
-        this->models[i].draw(temp_transformation);
+        this->models[i].draw(this->transformation);
     }
 }
 
@@ -500,10 +508,10 @@ void WindowManagement::show(){
 
     // use this shader
     this->shaders[temp_method].use();
-    cout << "set vao data\n";
 
     // TODO set_vao_data
     this->models.back().set_vao_data();
+    cout << "set vao data\n";
 }
 
 

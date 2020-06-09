@@ -96,7 +96,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath){
         cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED" << infoLog << endl;
     }
     else{
-        cout << "SUCCESS::SHADER::PROGRA<::LINKING" << endl;
+        cout << "SUCCESS::SHADER::PROGRAM::LINKING" << endl;
     }
     // delete the shader as they-re linked into our program now and no longer necessery
     glDeleteShader(vertex);
@@ -124,12 +124,12 @@ void Shader::set_uniform(const string &name, float value) const
 
 void Shader::set_uniform(const string &name, glm::vec3 value) const
 {
-    glUniform3fv(glGetUniformLocation(this->ID, name.c_str()), 1, &value[0]);
+    glUniform3fv(glGetUniformLocation(this->ID, name.c_str()), 1, glm::value_ptr(value));
 }
 
 void Shader::set_uniform(const string &name, glm::vec4 value) const
 {
-    glUniform4fv(glGetUniformLocation(this->ID, name.c_str()), 1, &value[0]);
+    glUniform4fv(glGetUniformLocation(this->ID, name.c_str()), 1, glm::value_ptr(value));
 }
 
 void Shader::set_uniform(const string &name, glm::mat4 value) const

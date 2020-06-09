@@ -64,6 +64,7 @@ void Model::draw(Shader *myShader, Camera myCamera){
     glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "model"), 1, GL_FALSE, glm::value_ptr(Model::model));
     
     glm::mat4 matrix = Model::projection * Model::view * Model::model;
+    
     glUniformMatrix4fv(glGetUniformLocation(myShader->ID, "matrix"), 1, GL_FALSE, glm::value_ptr(matrix));
     // glUniform3fv(glGetUniformLocation(myShader->ID, "light_pos"), 1, glm::value_ptr(glm::vec3(0.0f, 0.0f, -300.0f)));
     glUniform3fv(glGetUniformLocation(myShader->ID, "light_pos"), 1, glm::value_ptr(-myCamera.get_position()));

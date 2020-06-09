@@ -1,7 +1,7 @@
 #pragma once
 
 enum METHODS{
-    NONE = 0, ISO_SURFACE = 1, VOLUME_RENDERING = 2, LINE = 3
+    NONE = 0, ISO_SURFACE = 1, VOLUME_RENDERING = 2
 };
 
 const static int edgeTable[256]={

@@ -56,23 +56,27 @@ void Model::set_vao_data(){
             // IsoSurface iso_surface(this->method->inf_filename, this->method->raw_filename, 80);
 
             IsoSurface *tmp = ((IsoSurface*)(this->method));
+
             // cout << "shape: " << iso_surface.get_shape().x << '\n';
             // glm::ivec3 tmp = ((IsoSurface *)this->method)->get_shape();
             // cout << tmp.x << ' ' << tmp.y << ' ' << tmp.z << endl;
             // cout << tmp->get_shape().x << '\n';
             // cout << tmp << '\n';
+            
             vector<float> tmp_data = tmp->get_data();
 
-            cout << tmp_data.size() << '\n';
+            cout << "temp_data.size(): " << tmp_data.size() << '\n';
             // iso_surface.run();
             // cout << iso_surface.get_data().size() << '\n';
 
-            vector<float> triangle{
-                0, 0, 0, 1, 1, 1,
-                0, 0, 100, 1, 1, 1,
-                0, 100, 0, 1, 1, 1
-            };
-            VAO temp_vao = VAOManagement::generateVAO(triangle);
+            // vector<float> triangle{
+            //     0, 0, 0, 1, 1, 1,
+            //     0, 0, 100, 1, 1, 1,
+            //     0, 100, 0, 1, 1, 1
+            // };
+            // VAO temp_vao = VAOManagement::generateVAO(triangle);
+            VAO temp_vao = VAOManagement::generateVAO(tmp_data);
+            
             cout << temp_vao.vao << ' ' << temp_vao.count << endl;
             this->vao.push_back(temp_vao);
             cout << "vao size: " << this->vao.size() << endl;
