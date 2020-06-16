@@ -157,6 +157,7 @@ void IsoSurface::run(){
 }
 
 vector<float> IsoSurface::get_data(){
+    cout << this->data.size() << endl;
     return this->data;
 }
 

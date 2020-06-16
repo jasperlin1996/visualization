@@ -23,6 +23,9 @@ Volume::Volume(string infFilename, string rawFilename){
     this->resolution  = glm::ivec3(0, 0, 0);
     this->voxelSize   = glm::vec3(1.0f, 1.0f, 1.0f);
 
+    this->min = 0.0f;
+    this->max = 0.0f;
+
     readInfo(this->infFilename);
     if(sampleType == TYPE::UNSIGNED_CHAR){
         readData<unsigned char>(this->rawFilename);
@@ -174,9 +177,9 @@ void Volume::store_data(string filename){
     fstream output;
     output.open(filename, ios::out);
 
-    for(auto i = 0; i < this->data.size(); i++){
-        for(auto j = 0; j < this->data[0].size(); j++){
-            for(auto k = 0; k < this->data[0][0].size(); k++){
+    for(size_t i = 0; i < this->data.size(); i++){
+        for(size_t j = 0; j < this->data[0].size(); j++){
+            for(size_t k = 0; k < this->data[0][0].size(); k++){
                 output << this->data[i][j][k] << ' ';
             }
         }

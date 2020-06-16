@@ -12,6 +12,13 @@ typedef glm::vec3 NormalVec3;
 
 using namespace std;
 
+typedef struct Texture {
+    // GL_TEXTURE_3D ...
+    GLenum target;
+    // glGenTextures(1, &(this->texture[i].textures));
+    GLuint textures;
+} Texture;
+
 class VAO{
 public:
     GLuint vao;
@@ -20,9 +27,8 @@ public:
 
 class VAOManagement{
 public:
-    // static VAO generateVAO(vector<pair<PositionVec3, NormalVec3> > vertexData);
-    // static VAO generateVAO(vector<PositionVec3> vertexData);
     static VAO generateVAO(vector<float> vertexData);
-    static void drawVAO(vector<VAO>, Shader *);
-    static void drawVAO(vector<VAO>, GLenum, GLenum);
+    // static void drawVAO(vector<VAO>, Shader *); // Version 1
+    // static void drawVAO(vector<VAO>&, GLenum, GLenum); // Version 2
+    static void drawVAO(vector<VAO>&, bool, vector<Texture>&, GLenum, GLenum); // Version 3
 };

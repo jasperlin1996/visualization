@@ -1,8 +1,8 @@
 #include "glad/glad.h"
 #include <GLFW/glfw3.h>
 #include "glm/glm.hpp"
-// #include "IsoSurface.h"
-#include "temp_WindowManagement.h"
+
+#include "WindowManagement.h"
 
 using namespace std;
 

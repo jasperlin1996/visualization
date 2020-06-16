@@ -178,6 +178,12 @@ bool WindowManagement::init(float w, float h, string window_name) {
     glEnable(GL_DEPTH_TEST);
     // glEnable(GL_CULL_FACE);
 
+    // Blend (alpha)
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    // Enable point size flexibility
+    glEnable(GL_PROGRAM_POINT_SIZE);
 
     // cout << "Creating Shader...\n";
     // this->myShader = new Shader("./shader.vert", "./shader.frag");
@@ -187,9 +193,10 @@ bool WindowManagement::init(float w, float h, string window_name) {
     // this->myModel = Model(w, h);
     this->transformation = Transformation((float)w, (float)h);
     cout << "Createing Shader...\n";
-    this->shaders[METHODS::ISO_SURFACE] = Shader("./shader.vert", "./shader.frag");
+    this->shaders[METHODS::ISO_SURFACE] = Shader("./src/shader/iso_surface/shader.vert", "./src/shader/iso_surface/shader.frag");
+    this->shaders[METHODS::VOLUME_RENDERING] = Shader("./src/shader/slicing/shader.vert", "./src/shader/slicing/shader.frag");
     cout << "Shader ID: " << this->shaders[METHODS::ISO_SURFACE].ID << endl;
-    // this->shaders[METHODS::VOLUME_RENDERING] = Shader("./shader.vert", "./shader.frag");
+    cout << "Shader ID: " << this->shaders[METHODS::VOLUME_RENDERING].ID << endl;
     cout << "Shader Created!\n";
 
     this->myCamera = Camera(w, h);
@@ -252,7 +259,7 @@ void WindowManagement::gui(){
     static METHODS current_method = METHODS::ISO_SURFACE;
     static string selected_method = "Iso Surface";
     static string selected_filename = "engine";
-    static int iso_value = 80, min_iso_value = 80, max_iso_value = 80;
+    static int iso_value = 80, min_iso_value = 80, max_iso_value = 80, last_iso_value = iso_value;
 
     static bool is_load = false, is_show = false;
     // IMGUI
@@ -302,8 +309,8 @@ void WindowManagement::gui(){
         this->load(selected_filename, this->methods[selected_method], false);
         is_load = true;
         if (current_method == METHODS::ISO_SURFACE) {
-            // min_iso_value = (int)(this->models.back().method->volume.min);
-            // max_iso_value = (int)(this->models.back().method->volume.max);
+            min_iso_value = (int)(this->models.back().method->volume.min);
+            max_iso_value = (int)(this->models.back().method->volume.max);
 
             cout << "load: ";
             cout << min_iso_value << ' ' << max_iso_value << '\n';
@@ -312,12 +319,15 @@ void WindowManagement::gui(){
     }
 
     if (!is_show && is_load && ImGui::Button("Show")) {
-        // TODO
         is_show = true;
         this->show();
         ImGui::SameLine();
     }
     if (ImGui::Button("Clear")) {
+        // manually free memory
+        for (size_t i = 0; i < this->models.size(); i++) {
+            this->models[i].free();
+        }
         this->models.clear();
         is_load = false;
         is_show = false;
@@ -327,6 +337,12 @@ void WindowManagement::gui(){
     }
     if (this->methods[selected_method] == METHODS::ISO_SURFACE) {
         ImGui::SliderInt("iso value", &iso_value, min_iso_value, max_iso_value);
+        if(last_iso_value != iso_value) {
+            last_iso_value = iso_value;
+            ((IsoSurface *)(this->models.back().method))->set_iso_value(iso_value);
+            ((IsoSurface *)(this->models.back().method))->run();
+            this->models.back().update_vao_data();
+        }
     }
     ImGui::Text("Slicing Plane");
 
@@ -359,22 +375,11 @@ void WindowManagement::mainLoop(){
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-
+        // gui and draw
         this->gui();
 
         glfwGetFramebufferSize(this->window, (int*)&(this->width), (int*)&(this->height));
-        
 
-        
-        // this->myShader->use(); // TODO this->draw
-
-        // draw some shit
-        // for(size_t i = 0; i < this->models.size(); i++){
-        //     this->models[i].draw();
-        // }
-
-
-        // this->myModel.draw(this->myShader, this->myCamera);
         // check and call events and swap the buffers
 
         // IMGUI
@@ -462,6 +467,10 @@ void WindowManagement::draw(){
     // TODO:
     //   Enable/disable Model(s) by their METHODS
     //   Different METHODS have different Shader
+
+    METHODS last_method = this->models.back().get_method_choice();
+    this->shaders[last_method].use();
+
     for (size_t i = 0; i < this->models.size(); i++) {
         // Transformation temp_transformation;
         // this->shaders[METHODS::ISO_SURFACE].use();
@@ -469,35 +478,40 @@ void WindowManagement::draw(){
         data_shape = -data_shape/2.0f;
         data_shape *= ((this->models[i]).method)->voxel_size;
 
-        // temp_transformation.normalize_object_position(data_shape);
-        // temp_transformation.set_model();
-        // temp_transformation.set_view(this->myCamera);
-        // temp_transformation.set_projection(this->myCamera);
-
-        // temp_transformation.run();
-
         this->transformation.normalize_object_position(data_shape);
         this->transformation.set_model();
         this->transformation.set_view(this->myCamera);
         this->transformation.set_projection(this->myCamera);
         this->transformation.run();
 
-        if (this->models[i].get_method_choice() == METHODS::ISO_SURFACE) {
-            // TODO check if value_ptr is needed
-            this->shaders[METHODS::ISO_SURFACE].use();
+        if (last_method == METHODS::ISO_SURFACE) {
+            // this->shaders[METHODS::ISO_SURFACE].use();
             this->shaders[METHODS::ISO_SURFACE].set_uniform("color", glm::vec3(0.3f, 0.5f, 0.3f));
         
-
-            // this->shaders[METHODS::ISO_SURFACE].set_uniform("model", this->transformation.model);
-            // this->shaders[METHODS::ISO_SURFACE].set_uniform("matrix", this->transformation.matrix);
             this->shaders[METHODS::ISO_SURFACE].set_uniform("model", this->transformation.model);
             this->shaders[METHODS::ISO_SURFACE].set_uniform("matrix", this->transformation.matrix);
+            this->shaders[METHODS::ISO_SURFACE].set_uniform("clip_plane", glm::vec4(this->x, this->y, this->z, this->clip));
             this->shaders[METHODS::ISO_SURFACE].set_uniform("light_pos", -this->myCamera.get_position());
             this->shaders[METHODS::ISO_SURFACE].set_uniform("view_pos", this->myCamera.get_position());
             this->shaders[METHODS::ISO_SURFACE].set_uniform("light_color", glm::vec3(1.0f));
-            this->shaders[METHODS::ISO_SURFACE].set_uniform("ClipPlane", glm::vec4(this->x, this->y, this->z, this->clip));
         }
-        this->models[i].draw(this->transformation);
+        else if (last_method == METHODS::VOLUME_RENDERING) {
+            // TODO VOLUME_RENDERING Shader
+            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("model", this->transformation.model);
+            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("matrix", this->transformation.matrix);
+            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("clip_plane", glm::vec4(this->x, this->y, this->z, this->clip));
+            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("light_pos", -this->myCamera.get_position());
+            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("light_color", this->myCamera.get_position());
+            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("view_pos", glm::vec3(1.0f));
+
+            if (((VolumeRendering *)(this->models[i].method))->axis_aligned(this->myCamera.get_direction())) {
+                this->models[i].update_vao_data();
+            }
+        }
+        // Only enable models with same method with the last model
+        if (this->models[i].get_method_choice() == last_method) {
+            this->models[i].draw();
+        }
     }
 }
 
@@ -508,9 +522,11 @@ void WindowManagement::show(){
 
     // use this shader
     this->shaders[temp_method].use();
-
+    
     // TODO set_vao_data
     this->models.back().set_vao_data();
+    cout << "set vao data\n";
+    
 }
 
 
@@ -540,9 +556,17 @@ void WindowManagement::load(string filename, METHODS method, bool update){
             filename = data_dir + "/Scalar/" + filename;
 
             Model temp_model(filename + ".inf", filename + ".raw", method);
-            temp_model.run();
+            ((VolumeRendering *)temp_model.method)->axis_aligned(this->myCamera.get_direction());
+            // temp_model.run();
+
+            temp_model.enable_textures(2);
+            temp_model.init_texture(GL_TEXTURE_1D, 0);
+            temp_model.init_texture(GL_TEXTURE_3D, 1);
+            temp_model.set_texture(0);
+            temp_model.set_texture(1);
 
             this->models.push_back(temp_model);
+            break;
         }
         default:
             break;

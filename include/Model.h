@@ -10,7 +10,7 @@
 #include "constants.h"
 #include "Method.h"
 #include "IsoSurface.h"
-//#include "VolumeRendering.h"
+#include "VolumeRendering.h"
 
 class Model{
 public:
@@ -19,14 +19,20 @@ public:
     ~Model();
     float clip, x, y, z;
     //
-    void draw(Transformation&);
+    void draw();
     METHODS get_method_choice();
     void run();
     void set_vao_data();
+    void update_vao_data();
+    void init_texture(GLenum, int);
+    void enable_textures(int);
+    void set_texture(int);
+    void free();
     Method* method;
+
 private:
-    glm::mat4 rotate_matrix;
-    //
+    bool use_texture;
+    vector<Texture> textures;
     string inf_filename, raw_filename;
     METHODS method_choice;
     vector<VAO> vao;

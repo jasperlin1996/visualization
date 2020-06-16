@@ -10,14 +10,14 @@ uniform vec3 color;
 uniform mat4 model;
 uniform mat4 matrix;
 
-uniform vec4 ClipPlane;
+uniform vec4 clip_plane;
 out float check;
 
 void main()
 {
     frag_pos = vec3(model * vec4(a_pos, 1.0));
 
-    check = dot(vec4(frag_pos, 1.0), ClipPlane);
+    check = dot(vec4(frag_pos, 1.0), clip_plane);
 
     gl_Position = matrix * vec4(a_pos, 1.0);
     normal = mat3(transpose(inverse(model))) * a_normal;

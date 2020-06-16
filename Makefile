@@ -5,7 +5,7 @@ macos-args   = -stdlib=libc++ -lglfw -framework Cocoa -framework OpenGL -framewo
 IMGUI_SOURCE_FILES = src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_widgets.cpp src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp
 GLAD_SOURCE_FILES = src/glad/*.c
 
-RECONSTRUCT_TEST = src/VolumeRendering.cpp src/_%.cpp
+RECONSTRUCT_TEST = src/_%.cpp
 
 OBJ_DIR = obj
 LIB_DIR = lib

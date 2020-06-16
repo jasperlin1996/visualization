@@ -6,6 +6,7 @@
 #include "VAO.h"
 #include "Model.h"
 #include "IsoSurface.h"
+#include "VolumeRendering.h"
 #include "Transformation.h"
 
 #include "imgui/imgui.h"
@@ -40,12 +41,8 @@ private:
     string selected_method, selected_filename;
     Transformation transformation;
     Camera myCamera;
-    // Shader * myShader;
     map<METHODS, Shader> shaders;
-    // map<string, Shader> shader;
-    // Model myModel;
     vector<Model> models;
-    // map<string, Model> model;
     map<string, METHODS> methods;
     vector<string> filenames;
     GLFWwindow * window;
