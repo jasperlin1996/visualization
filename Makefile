@@ -3,7 +3,7 @@ linux-args   = -lglfw3 -pthread -lXrandr -lXxf86vm -lXi -lXinerama -lX11 -ldl -l
 macos-args   = -stdlib=libc++ -lglfw -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo -framework Carbon
 
 IMGUI_SOURCE_FILES = src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_widgets.cpp src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp
-IMPLOT_SOURCE_FILES = src/implot/implot.cpp
+IMPLOT_SOURCE_FILES = src/implot/implot.cpp src/implot/implot_demo.cpp
 GLAD_SOURCE_FILES = src/glad/*.c
 
 RECONSTRUCT_TEST = src/_%.cpp
