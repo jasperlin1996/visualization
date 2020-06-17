@@ -81,7 +81,7 @@ $(OBJ_DIR)/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 
-default: create_dir $(EXE) exe
+default: create_dir $(EXE)
 	@echo Compile and Execute Success
 
 create_dir:
@@ -94,7 +94,7 @@ linux:
 $(EXE): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
 
-exe:
+run:
 	./$(EXE)
 
 histogram:

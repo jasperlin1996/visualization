@@ -149,7 +149,7 @@ bool WindowManagement::init(float w, float h, string window_name) {
     // IMGUI
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
+    // ImGuiIO& io = ImGui::GetIO();
 
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(this->window, true);
@@ -185,18 +185,14 @@ bool WindowManagement::init(float w, float h, string window_name) {
     // Enable point size flexibility
     glEnable(GL_PROGRAM_POINT_SIZE);
 
-    // cout << "Creating Shader...\n";
-    // this->myShader = new Shader("./shader.vert", "./shader.frag");
-    // cout << "Create Shader" << endl;
-
-    // // init Model
-    // this->myModel = Model(w, h);
     this->transformation = Transformation((float)w, (float)h);
     cout << "Createing Shader...\n";
     this->shaders[METHODS::ISO_SURFACE] = Shader("./src/shader/iso_surface/shader.vert", "./src/shader/iso_surface/shader.frag");
     this->shaders[METHODS::VOLUME_RENDERING] = Shader("./src/shader/slicing/shader.vert", "./src/shader/slicing/shader.frag");
+    this->shaders[METHODS::STREAM_LINE] = Shader("./src/shader/stream_line/shader.vert", "./src/shader/stream_line/shader.frag");
     cout << "Shader ID: " << this->shaders[METHODS::ISO_SURFACE].ID << endl;
     cout << "Shader ID: " << this->shaders[METHODS::VOLUME_RENDERING].ID << endl;
+    cout << "Shader ID: " << this->shaders[METHODS::STREAM_LINE].ID << endl;
     cout << "Shader Created!\n";
 
     this->myCamera = Camera(w, h);
@@ -237,6 +233,7 @@ void WindowManagement::generate_combo(){
     // generate methods combo
     this->methods["Iso Surface"] = METHODS::ISO_SURFACE;
     this->methods["Slicing"] = METHODS::VOLUME_RENDERING;
+    this->methods["Stream Line"] = METHODS::STREAM_LINE;
 
     // generate filenames combo
     DIR *dp;
@@ -247,11 +244,19 @@ void WindowManagement::generate_combo(){
             string temp = dirp->d_name;
             size_t index = temp.find(".inf");
 
-            if(index != string::npos) this->filenames.push_back(temp.substr(0, index));
+            if(index != string::npos) this->scalar_filenames.push_back(temp.substr(0, index));
         }
     }
+    if((dp = opendir("./Data/Vector")) != NULL){
+        while((dirp = readdir(dp)) != NULL){
+            string temp = dirp->d_name;
+            size_t index = temp.find(".vec");
 
-    sort(this->filenames.begin(), this->filenames.end());
+            if(index != string::npos) this->vector_filenames.push_back(temp.substr(0, index));
+        }
+    }
+    sort(this->scalar_filenames.begin(), this->scalar_filenames.end());
+    sort(this->vector_filenames.begin(), this->vector_filenames.end());
 }
 
 
@@ -263,17 +268,19 @@ void WindowManagement::gui(){
 
     static bool is_load = false, is_show = false;
 
+    static vector<string> filenames;
     static vector<float> histogram;
     static vector<vector<float> > mk_table;
     static float histogram_max_amount;
     static int window_width, window_height;
+
     glfwGetFramebufferSize(this->window, &window_width, &window_height);
 
     // IMGUI
     // UI Design
     // set Controller position and size
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Once);
-    ImGui::SetNextWindowSize(ImVec2(window_width / 3, window_height / 3 + 50), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(270, 250), ImGuiCond_Once);
 
     ImGui::Begin("Setting");
     ImGui::Text("Select Model");
@@ -286,6 +293,14 @@ void WindowManagement::gui(){
                 selected_method = it->first;
                 is_load = false;
                 is_show = false;
+                current_method = this->methods[selected_method];
+                if (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING) {
+                    filenames = this->scalar_filenames;
+                }
+                else if (current_method == METHODS::STREAM_LINE) {
+                    filenames = this->vector_filenames;
+                }
+                selected_filename = filenames[0];
             }
             if (selected) ImGui::SetItemDefaultFocus();
         }
@@ -293,11 +308,11 @@ void WindowManagement::gui(){
     }
 
     if (ImGui::BeginCombo("Filename", selected_filename.c_str())) {
-        for (size_t i = 0; i < this->filenames.size(); i++) {
-            bool selected = (selected_method == this->filenames[i]);
+        for (size_t i = 0; i < filenames.size(); i++) {
+            bool selected = (selected_method == filenames[i]);
             
-            if (ImGui::Selectable(this->filenames[i].c_str(), selected)) {
-                selected_filename = this->filenames[i];
+            if (ImGui::Selectable(filenames[i].c_str(), selected)) {
+                selected_filename = filenames[i];
                 is_load = false;
                 is_show = false;
             }
@@ -310,7 +325,7 @@ void WindowManagement::gui(){
         // this->load_model();
         this->load(selected_filename, this->methods[selected_method], false);
         is_load = true;
-        if (current_method == METHODS::ISO_SURFACE) {
+        if (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING) {
             min_iso_value = (int)(this->models.back().method->volume.min);
             max_iso_value = (int)(this->models.back().method->volume.max);
             min_gradient_magnitude = (int)(this->models.back().method->volume.min_gradient);
@@ -322,6 +337,7 @@ void WindowManagement::gui(){
             histogram_max_amount = *max_element(histogram.begin(), histogram.end());
             mk_table = this->models.back().method->volume.get_mk_table();
         }
+        // cout << "current_method" << current_method << endl;
         ImGui::SameLine();
     }
 
@@ -372,7 +388,7 @@ void WindowManagement::gui(){
     ImGui::End();
 
 
-    if (is_load) {
+    if (is_load && (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING)) {
         // set historgram position
 
         ImGui::SetNextWindowPos(ImVec2(10, window_height / 2 - 40), ImGuiCond_Once);
@@ -385,7 +401,7 @@ void WindowManagement::gui(){
         }
         ImGui::End();
     }
-    if (is_load) {
+    if (is_load && (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING)) {
         // set mk table
         ImGui::SetNextWindowPos(ImVec2(window_width - 400, 10), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2(390, 330), ImGuiCond_Once);
@@ -531,7 +547,9 @@ void WindowManagement::draw(){
         glm::vec3 data_shape = ((this->models[i]).method)->data_shape;
         data_shape = -data_shape/2.0f;
         data_shape *= ((this->models[i]).method)->voxel_size;
-
+        if (last_method == METHODS::STREAM_LINE) {
+            // cout << "data_shape: " << data_shape.x << ' ' << data_shape.y << ' ' << data_shape.z << endl;
+        }
         this->transformation.normalize_object_position(data_shape);
         this->transformation.set_model();
         this->transformation.set_view(this->myCamera);
@@ -561,6 +579,9 @@ void WindowManagement::draw(){
             if (((VolumeRendering *)(this->models[i].method))->axis_aligned(this->myCamera.get_direction())) {
                 this->models[i].update_vao_data();
             }
+        }
+        else if (last_method == METHODS::STREAM_LINE) {
+            this->shaders[METHODS::STREAM_LINE].set_uniform("matrix", this->transformation.matrix);
         }
         // Only enable models with same method with the last model
         if (this->models[i].get_method_choice() == last_method) {
@@ -618,6 +639,17 @@ void WindowManagement::load(string filename, METHODS method, bool update){
             temp_model.init_texture(GL_TEXTURE_3D, 1);
             temp_model.set_texture(0);
             temp_model.set_texture(1);
+
+            this->models.push_back(temp_model);
+            break;
+        }
+        case (METHODS::STREAM_LINE): {
+            cout << "Method: Stream Line\n";
+
+            filename = data_dir + "/Vector/" + filename;
+            cout << filename << endl;
+            Model temp_model(filename + ".vec", method);
+            ((StreamLine *)temp_model.method)->run();
 
             this->models.push_back(temp_model);
             break;

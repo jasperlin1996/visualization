@@ -111,8 +111,8 @@ void IsoSurface::run(){
 
                 pair<glm::vec3, glm::vec3> vertex_list[12];
                 surface_intersection(vertex_list, grid, grid_value, grid_gradient, edges);
-                int vertex_count = 0, triangle_count = 0;
 #ifdef OUTPUT
+                int vertex_count = 0;
                 cout << "cubeindex: " << hex << cubeindex << endl;
                 cout << "edgetable: " << hex << edgeTable[cubeindex] << endl;
                 cout << "tritable: ";
@@ -127,9 +127,7 @@ void IsoSurface::run(){
                     }
                 }
 #endif
-                triangle_count = vertex_count/3;
                 for(int i = 0; triTable[cubeindex][i] != -1; i += 3){
-                    // cout << vertex_list[triTable[cubeindex][i]].first[0] << endl;
                     this->data.push_back(vertex_list[triTable[cubeindex][i]].first[0]);
                     this->data.push_back(vertex_list[triTable[cubeindex][i]].first[1]);
                     this->data.push_back(vertex_list[triTable[cubeindex][i]].first[2]);

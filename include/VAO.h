@@ -27,7 +27,7 @@ public:
 
 class VAOManagement{
 public:
-    static VAO generateVAO(vector<float> vertexData);
+    static VAO generateVAO(vector<float> vertexData, vector<int> vao_setting);
     // static void drawVAO(vector<VAO>, Shader *); // Version 1
     // static void drawVAO(vector<VAO>&, GLenum, GLenum); // Version 2
     static void drawVAO(vector<VAO>&, bool, vector<Texture>&, GLenum, GLenum); // Version 3

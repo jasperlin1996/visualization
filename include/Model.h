@@ -11,14 +11,16 @@
 #include "Method.h"
 #include "IsoSurface.h"
 #include "VolumeRendering.h"
+#include "StreamLine.h"
 
 class Model{
 public:
     Model();
     Model(string, string, METHODS);
+    Model(string, METHODS);
     ~Model();
     float clip, x, y, z;
-    //
+
     void draw();
     METHODS get_method_choice();
     void run();

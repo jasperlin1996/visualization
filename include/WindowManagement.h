@@ -5,9 +5,10 @@
 #include "Shader.h"
 #include "VAO.h"
 #include "Model.h"
+#include "Transformation.h"
 #include "IsoSurface.h"
 #include "VolumeRendering.h"
-#include "Transformation.h"
+#include "StreamLine.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"
@@ -46,6 +47,6 @@ private:
     map<METHODS, Shader> shaders;
     vector<Model> models;
     map<string, METHODS> methods;
-    vector<string> filenames;
+    vector<string> scalar_filenames, vector_filenames;
     GLFWwindow * window;
 };

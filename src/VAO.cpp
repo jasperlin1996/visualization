@@ -1,12 +1,10 @@
 #include "VAO.h"
 
-VAO VAOManagement::generateVAO(vector<float> vertexData){
+VAO VAOManagement::generateVAO(vector<float> vertexData, vector<int> vao_setting){
     cout << "generate VAO: " << vertexData.size() << '\n';
 
     VAO myVAO;
     GLuint vbo;
-    const int DIMENSION  = 3;
-    const int ATTRIBUTES = 2;
 
     glGenVertexArrays(1, &(myVAO.vao));
     glGenBuffers(1, &vbo);
@@ -15,15 +13,21 @@ VAO VAOManagement::generateVAO(vector<float> vertexData){
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, vertexData.size() * sizeof(vertexData[0]), vertexData.data(), GL_STATIC_DRAW);
-    // position only
-	for(int i = 0; i < ATTRIBUTES; i++){
-		glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, DIMENSION * ATTRIBUTES * sizeof(float), (GLvoid*)(DIMENSION * sizeof(float)*i));
-		glEnableVertexAttribArray(i);
-	}
+
+    int item_size = 0, offset_counter = 0;
+    for(size_t i = 0; i < vao_setting.size(); i++){
+        item_size += vao_setting[i];
+    }
+
+    for(size_t i = 0; i < vao_setting.size(); i++){
+        glVertexAttribPointer(i, vao_setting[i], GL_FLOAT, GL_FALSE, item_size * sizeof(float), (GLvoid*)(offset_counter * sizeof(float)));
+        offset_counter += vao_setting[i];
+        glEnableVertexAttribArray(i);
+    }
     
     glBindVertexArray(0);
 
-    myVAO.count = vertexData.size() / (DIMENSION * ATTRIBUTES);
+    myVAO.count = vertexData.size() / item_size;
 
     return myVAO;
 }

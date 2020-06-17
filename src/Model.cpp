@@ -22,6 +22,31 @@ Model::Model(
         case METHODS::VOLUME_RENDERING:
             this->method = new VolumeRendering(this->inf_filename, this->raw_filename);
             break;
+        case METHODS::STREAM_LINE:
+            this->method = new StreamLine(this->inf_filename);
+            break;
+        default:
+            break;
+    }
+    this->use_texture = false;
+    this->textures.resize(0);
+}
+
+Model::Model(
+    string filename,
+    METHODS method_choice
+) : inf_filename(filename),
+    raw_filename(filename),
+    method_choice(method_choice)
+{
+    switch (this->method_choice) {
+        case METHODS::NONE:
+            break;
+        case METHODS::STREAM_LINE:
+            this->method = new StreamLine(this->raw_filename);
+            break;
+        default:
+            break;
     }
     this->use_texture = false;
     this->textures.resize(0);
@@ -45,6 +70,8 @@ void Model::run(){
         case METHODS::VOLUME_RENDERING:
             // (VolumeRendering *)(this->method)->run();
             break;
+        case METHODS::STREAM_LINE:
+            ((StreamLine *)(this->method))->run();
     }
 }
 
@@ -58,6 +85,8 @@ void Model::draw(){
         case METHODS::VOLUME_RENDERING:
             VAOManagement::drawVAO(this->vao, this->use_texture, this->textures, GL_TRIANGLES, GL_FILL);
             break;
+        case METHODS::STREAM_LINE:
+            VAOManagement::drawVAO(this->vao, this->use_texture, this->textures, GL_POINTS, GL_FILL);
         default:
             break;
     }
@@ -67,11 +96,18 @@ void Model::draw(){
 void Model::set_vao_data(){
     switch (this->method_choice) {
         case (METHODS::ISO_SURFACE): {
-            this->vao.push_back(VAOManagement::generateVAO(((IsoSurface *)(this->method))->get_data()));
+            vector<int> vao_setting{3, 3};
+            this->vao.push_back(VAOManagement::generateVAO(((IsoSurface *)(this->method))->get_data(), vao_setting));
             break;
         }
         case (METHODS::VOLUME_RENDERING): {
-            this->vao.push_back(VAOManagement::generateVAO(((VolumeRendering *)(this->method))->get_data()));
+            vector<int> vao_setting{3, 3};
+            this->vao.push_back(VAOManagement::generateVAO(((VolumeRendering *)(this->method))->get_data(), vao_setting));
+            break;
+        }
+        case (METHODS::STREAM_LINE): {
+            vector<int> vao_setting{2, 4, 1};
+            this->vao.push_back(VAOManagement::generateVAO(((StreamLine *)(this->method))->get_data(), vao_setting));
             break;
         }
         default:
@@ -82,13 +118,15 @@ void Model::set_vao_data(){
 void Model::update_vao_data(){
     switch (this->method_choice) {
         case (METHODS::ISO_SURFACE): {
+            vector<int> vao_setting{3, 3};
             this->vao.clear();
-            this->vao.push_back(VAOManagement::generateVAO(((IsoSurface *)(this->method))->get_data()));
+            this->vao.push_back(VAOManagement::generateVAO(((IsoSurface *)(this->method))->get_data(), vao_setting));
             break;
         }
         case (METHODS::VOLUME_RENDERING): {
+            vector<int> vao_setting{3, 3};
             this->vao.clear();
-            this->vao.push_back(VAOManagement::generateVAO(((VolumeRendering *)(this->method))->get_data()));
+            this->vao.push_back(VAOManagement::generateVAO(((VolumeRendering *)(this->method))->get_data(), vao_setting));
             break;
         }
         default:
@@ -149,6 +187,8 @@ void Model::set_texture(int index){
             break;
         case METHODS::VOLUME_RENDERING:
             ((VolumeRendering *)(this->method))->set_texture(index, this->textures[index].target);
+        default:
+            break;
     }
 
     glBindTexture(this->textures[index].target, 0);
