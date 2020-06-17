@@ -190,9 +190,11 @@ bool WindowManagement::init(float w, float h, string window_name) {
     this->shaders[METHODS::ISO_SURFACE] = Shader("./src/shader/iso_surface/shader.vert", "./src/shader/iso_surface/shader.frag");
     this->shaders[METHODS::VOLUME_RENDERING] = Shader("./src/shader/slicing/shader.vert", "./src/shader/slicing/shader.frag");
     this->shaders[METHODS::STREAM_LINE] = Shader("./src/shader/stream_line/shader.vert", "./src/shader/stream_line/shader.frag");
+    this->shaders[METHODS::SAMMON_MAPPING] = Shader("./src/shader/sammon_mapping/shader.vert", "./src/shader/sammon_mapping/shader.frag");
     cout << "Shader ID: " << this->shaders[METHODS::ISO_SURFACE].ID << endl;
     cout << "Shader ID: " << this->shaders[METHODS::VOLUME_RENDERING].ID << endl;
     cout << "Shader ID: " << this->shaders[METHODS::STREAM_LINE].ID << endl;
+    cout << "Shader ID: " << this->shaders[METHODS::SAMMON_MAPPING].ID << endl;
     cout << "Shader Created!\n";
 
     this->myCamera = Camera(w, h);
@@ -234,6 +236,7 @@ void WindowManagement::generate_combo(){
     this->methods["Iso Surface"] = METHODS::ISO_SURFACE;
     this->methods["Slicing"] = METHODS::VOLUME_RENDERING;
     this->methods["Stream Line"] = METHODS::STREAM_LINE;
+    this->methods["Sammon Mapping"] = METHODS::SAMMON_MAPPING;
 
     // generate filenames combo
     DIR *dp;
@@ -294,7 +297,7 @@ void WindowManagement::gui(){
                 is_load = false;
                 is_show = false;
                 current_method = this->methods[selected_method];
-                if (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING) {
+                if (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING || current_method == METHODS::SAMMON_MAPPING) {
                     filenames = this->scalar_filenames;
                 }
                 else if (current_method == METHODS::STREAM_LINE) {
@@ -583,6 +586,9 @@ void WindowManagement::draw(){
         else if (last_method == METHODS::STREAM_LINE) {
             this->shaders[METHODS::STREAM_LINE].set_uniform("matrix", this->transformation.matrix);
         }
+        else if (last_method == METHODS::SAMMON_MAPPING) {
+            this->shaders[METHODS::SAMMON_MAPPING].set_uniform("matrix", this->transformation.matrix);
+        }
         // Only enable models with same method with the last model
         if (this->models[i].get_method_choice() == last_method) {
             this->models[i].draw();
@@ -650,6 +656,17 @@ void WindowManagement::load(string filename, METHODS method, bool update){
             cout << filename << endl;
             Model temp_model(filename + ".vec", method);
             ((StreamLine *)temp_model.method)->run();
+
+            this->models.push_back(temp_model);
+            break;
+        }
+        case (METHODS::SAMMON_MAPPING): {
+            cout << "Method: Sammon Mapping\n";
+
+            filename = data_dir + "/Scalar/" + filename;
+            cout << filename << endl;
+            Model temp_model(filename + ".inf", filename + ".raw", method);
+            ((SammonMapping *)temp_model.method)->run();
 
             this->models.push_back(temp_model);
             break;

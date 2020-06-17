@@ -9,6 +9,7 @@
 #include "IsoSurface.h"
 #include "VolumeRendering.h"
 #include "StreamLine.h"
+#include "SammonMapping.h"
 
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw.h"

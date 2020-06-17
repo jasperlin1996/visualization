@@ -139,5 +139,5 @@ vector<float> StreamLine::get_data(){
 }
 
 glm::vec3 StreamLine::transfer_function(float magnitude){
-    return glm::vec3(1.0f, min(1.0f, 1.0f - 3 * magnitude), min(1.0f, 1.0f - 3* magnitude));
+    return glm::vec3(1.0f, min(1.0f, 1.0f - magnitude), min(1.0f, 1.0f - magnitude));
 }
