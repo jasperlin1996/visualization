@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glm/glm.hpp"
+#include "glm/gtx/norm.hpp"
 #include <vector>
 #include <cstring>
 #include <fstream>
@@ -33,7 +34,11 @@ public:
     void store_data(string);
     glm::vec3 get_gradient(glm::vec3);
     glm::vec3 get_voxel_size();
+    vector<float> get_histogram();
+    // vector<vector<float> > mk_table;
+    vector<vector<float> > get_mk_table();
     float min, max; // not good
+    float min_gradient, max_gradient;
 
     template <typename T> void readData(string rawFilename){
         fstream fs;
@@ -56,6 +61,10 @@ public:
                     T typeBridge;
                     memcpy(&typeBridge, buffer + index, this->byteSize);
                     this->data[x][y][z] = (float)typeBridge;
+                    if(x == 0 && y == 0 && z == 0) {
+                        this->min = this->data[x][y][z];
+                        this->max = this->data[x][y][z];
+                    }
                     if(this->data[x][y][z] < this->min) this->min = this->data[x][y][z];
                     if(this->data[x][y][z] > this->max) this->max = this->data[x][y][z];
                 }
@@ -77,11 +86,18 @@ public:
                     partial.z /= (float)(this->voxelSize.z * (2-(z==0 || z==z_edge)));
 
                     this->gradient[x][y][z] = partial;
+                    float l2norm_tmp = glm::l2Norm(this->gradient[x][y][z]);
+                    if(x == 0 && y == 0 && z == 0) {
+                        this->min_gradient = l2norm_tmp;
+                        this->max_gradient = l2norm_tmp;
+                    }
+                    if(l2norm_tmp < this->min_gradient) this->min_gradient = l2norm_tmp;
+                    if(l2norm_tmp > this->max_gradient) this->max_gradient = l2norm_tmp;
                     
-                    // cout << partial.x << ' ';
                 }
             }
         }
+        cout << "max_gradient: " << this->max_gradient << ", min_gradient: " << this->min_gradient << endl;
         // for(int x = 0; x < this->resolution.x; x++){
         //     for(int y = 0; y < this->resolution.y; y++){
         //         for(int z = 0; z < this->resolution.z; z++){

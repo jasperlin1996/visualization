@@ -259,19 +259,21 @@ void WindowManagement::gui(){
     static METHODS current_method = METHODS::ISO_SURFACE;
     static string selected_method = "Iso Surface";
     static string selected_filename = "engine";
-    static int iso_value = 80, min_iso_value = 80, max_iso_value = 80, last_iso_value = iso_value;
+    static int iso_value = 80, min_iso_value = 80, max_iso_value = 80, last_iso_value = iso_value, min_gradient_magnitude = 0, max_gradient_magnitude = 0;
 
     static bool is_load = false, is_show = false;
-    // IMGUI
-    // ImGui_ImplOpenGL3_NewFrame();
-    // ImGui_ImplGlfw_NewFrame();
-    // ImGui::NewFrame();
 
+    static vector<float> histogram;
+    static vector<vector<float> > mk_table;
+    static float histogram_max_amount;
+    static int window_width, window_height;
+    glfwGetFramebufferSize(this->window, &window_width, &window_height);
+
+    // IMGUI
     // UI Design
     // set Controller position and size
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_Once);
-    ImGui::SetNextWindowSize(ImVec2(this->width / 3, this->height / 2), ImGuiCond_Once);
-
+    ImGui::SetNextWindowSize(ImVec2(window_width / 3, window_height / 3 + 50), ImGuiCond_Once);
 
     ImGui::Begin("Setting");
     ImGui::Text("Select Model");
@@ -311,9 +313,14 @@ void WindowManagement::gui(){
         if (current_method == METHODS::ISO_SURFACE) {
             min_iso_value = (int)(this->models.back().method->volume.min);
             max_iso_value = (int)(this->models.back().method->volume.max);
+            min_gradient_magnitude = (int)(this->models.back().method->volume.min_gradient);
+            max_gradient_magnitude = (int)(this->models.back().method->volume.max_gradient);
 
             cout << "load: ";
             cout << min_iso_value << ' ' << max_iso_value << '\n';
+            histogram = this->models.back().method->volume.get_histogram();
+            histogram_max_amount = *max_element(histogram.begin(), histogram.end());
+            mk_table = this->models.back().method->volume.get_mk_table();
         }
         ImGui::SameLine();
     }
@@ -323,12 +330,14 @@ void WindowManagement::gui(){
         this->show();
         ImGui::SameLine();
     }
+    if (!is_show) ImGui::SameLine();
     if (ImGui::Button("Clear")) {
         // manually free memory
         for (size_t i = 0; i < this->models.size(); i++) {
             this->models[i].free();
         }
         this->models.clear();
+        histogram.clear();
         is_load = false;
         is_show = false;
     }
@@ -361,6 +370,28 @@ void WindowManagement::gui(){
         // this->transformation.update_clip(clip, x, y, z);
     }
     ImGui::End();
+
+
+    if (is_load) {
+        // set historgram position
+
+        ImGui::SetNextWindowPos(ImVec2(10, window_height / 2 - 40), ImGuiCond_Once);
+        ImGui::SetNextWindowSize(ImVec2(390, 330), ImGuiCond_Once);
+        ImGui::Begin("Histogram");
+        ImPlot::SetNextPlotLimits(0.0, 256.0, 0.0, histogram_max_amount, ImGuiCond_Always);
+        if (ImPlot::BeginPlot("My Plot", "Intensity", "Accumulation", ImVec2(-1, 0))) {
+            ImPlot::PlotBars(selected_filename.c_str(), histogram.data(), histogram.size());
+            ImPlot::EndPlot();
+        }
+        ImGui::End();
+    }
+    if (is_load) {
+        // set mk table
+        ImGui::SetNextWindowPos(ImVec2(window_width - 400, 10), ImGuiCond_Always);
+        ImGui::SetNextWindowSize(ImVec2(390, 330), ImGuiCond_Once);
+        ImGui::Begin("M x K Table");
+        ImGui::End();
+    }
     //
 
 }

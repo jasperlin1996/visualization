@@ -3,6 +3,7 @@ linux-args   = -lglfw3 -pthread -lXrandr -lXxf86vm -lXi -lXinerama -lX11 -ldl -l
 macos-args   = -stdlib=libc++ -lglfw -framework Cocoa -framework OpenGL -framework IOKit -framework CoreVideo -framework Carbon
 
 IMGUI_SOURCE_FILES = src/imgui/imgui.cpp src/imgui/imgui_draw.cpp src/imgui/imgui_widgets.cpp src/imgui/imgui_impl_glfw.cpp src/imgui/imgui_impl_opengl3.cpp
+IMPLOT_SOURCE_FILES = src/implot/implot.cpp
 GLAD_SOURCE_FILES = src/glad/*.c
 
 RECONSTRUCT_TEST = src/_%.cpp
@@ -14,7 +15,7 @@ LIB_DIR = lib
 SOURCES = $(filter-out $(RECONSTRUCT_TEST), $(wildcard src/*.cpp))
 SOURCES += $(wildcard src/glad/*.c)
 SOURCES += $(wildcard src/imgui/*.cpp)
-
+SOURCES += $(wildcard src/implot/*.cpp)
 
 OBJS    = $(addprefix $(OBJ_DIR)/, $(addsuffix .o, $(basename $(notdir $(SOURCES)))))
 LIBS    = -L./lib
@@ -73,6 +74,9 @@ $(OBJ_DIR)/%.o: src/glad/%.c
 $(OBJ_DIR)/%.o: src/imgui/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
+$(OBJ_DIR)/%.o: src/implot/%.cpp
+	$(CXX) $(CXXFLAGS) -c -o $@ $<
+
 $(OBJ_DIR)/%.o: src/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
@@ -84,7 +88,7 @@ create_dir:
 	$(call mkdir)
 
 linux:
-	$(CXX) $(CXXFLAGS) -std=c++17 $(SOURCES) $(IMGUI_SOURCE_FILES) $(GLAD_SOURCE_FILES) -o $(EXE) $(linux-args)
+	$(CXX) $(CXXFLAGS) -std=c++17 $(SOURCES) $(IMGUI_SOURCE_FILES) $(IMPLOT_SOURCE_FILES) $(GLAD_SOURCE_FILES) -o $(EXE) $(linux-args)
 	./main
 
 $(EXE): $(OBJS)

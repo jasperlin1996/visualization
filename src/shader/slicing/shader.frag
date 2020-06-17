@@ -26,9 +26,9 @@ void main(){
     vec4 object_color = texture(texture_1d, value);
     fragment_color = object_color;
 
-    // float magnitude = length(hold.xyz);
-    // magnitude = min(max(1.0, magnitude), 256.0);
-    // magnitude = 20 * log2(magnitude);
+    float magnitude = length(hold.xyz);
+    magnitude = min(max(1.0, magnitude), 256.0);
+    magnitude = 20 * log2(magnitude);
 
 
     vec3 light_direction = normalize(light_pos - fragment_pos);

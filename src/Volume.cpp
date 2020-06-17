@@ -25,6 +25,8 @@ Volume::Volume(string infFilename, string rawFilename){
 
     this->min = 0.0f;
     this->max = 0.0f;
+    this->min_gradient = 0.0f;
+    this->max_gradient = 0.0f;
 
     readInfo(this->infFilename);
     if(sampleType == TYPE::UNSIGNED_CHAR){
@@ -194,4 +196,49 @@ glm::vec3 Volume::get_gradient(glm::vec3 index){
 
 glm::vec3 Volume::get_voxel_size(){
     return this->voxelSize;
+}
+
+vector<float> Volume::get_histogram(){
+    vector<float> histogram(256, 0.0f);
+
+    float resizer = 255.0;
+    if (this->max - this->min >= 1e-6) resizer /= this->max - this->min;
+
+    for(size_t i = 0; i < this->data.size(); i++){
+        for(size_t j = 0; j < this->data[0].size(); j++){
+            for(size_t k = 0; k < this->data[0][0].size(); k++){
+                histogram[(int)(this->data[i][j][k] - this->min) * resizer]++;
+            }
+        }
+    }
+
+    return histogram;
+}
+
+vector<vector<float> > Volume::get_mk_table(){
+    vector<vector<float> > mk_table(256, vector<float>(100, 0.0f));
+    float gradient_range = this->max_gradient - this->min_gradient;
+    float value_range = this->max - this->min;
+    int max_mk_table = 0;
+    int _m = 0, _k = 0;
+
+    for(size_t i = 0; i < this->data.size(); i++){
+        for(size_t j = 0; j < this->data[0].size(); j++){
+            for(size_t k = 0; k < this->data[0][0].size(); k++){
+                _m = (this->data[i][j][k]*256.0f/value_range);
+                _k = (glm::l2Norm(this->gradient[i][j][k])*100.0f/gradient_range);
+                if (_m > 255) _m = 255;
+                if (_k > 99) _k = 99;
+                mk_table[_m][_k] += 1.0f;
+                if(mk_table[_m][_k] > max_mk_table) max_mk_table = mk_table[_m][_k];
+            }
+        }
+    }
+
+    for(size_t m = 0; m < mk_table.size(); m++){
+        for(size_t k = 0; k < mk_table[0].size(); k++){
+            mk_table[m][k] /= max_mk_table;
+        }
+    }
+    return mk_table;
 }
