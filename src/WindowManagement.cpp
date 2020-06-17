@@ -389,7 +389,22 @@ void WindowManagement::gui(){
         // set mk table
         ImGui::SetNextWindowPos(ImVec2(window_width - 400, 10), ImGuiCond_Always);
         ImGui::SetNextWindowSize(ImVec2(390, 330), ImGuiCond_Once);
+        ImPlot::SetNextPlotLimits(0.0, 256.0, 0.0, 160, ImGuiCond_Once);
         ImGui::Begin("M x K Table");
+        if (ImPlot::BeginPlot("##Table")) {
+            for (size_t m = 0; m < mk_table.size(); m++) {
+                for(size_t k = 0; k < mk_table[0].size(); k++) {
+                    ImVec2 rmin = ImPlot::PlotToPixels(ImPlotPoint(m, k+1));
+                    ImVec2 rmax = ImPlot::PlotToPixels(ImPlotPoint(m+1, k));
+                    // int gray_value = (int)(mk_table[m][k] * 255);
+                    int gray_value = min(255, (int)mk_table[m][k]);
+                    ImPlot::PushPlotClipRect();
+                    ImGui::GetWindowDrawList()->AddRectFilled(rmin, rmax, IM_COL32(gray_value, gray_value, gray_value, 255));
+                    ImPlot::PopPlotClipRect();
+                }
+            }
+            ImPlot::EndPlot();
+        }
         ImGui::End();
     }
     //
@@ -408,6 +423,7 @@ void WindowManagement::mainLoop(){
 
         // gui and draw
         this->gui();
+        ImPlot::ShowDemoWindow();
 
         glfwGetFramebufferSize(this->window, (int*)&(this->width), (int*)&(this->height));
 
@@ -424,6 +440,10 @@ void WindowManagement::mainLoop(){
 
 
 void WindowManagement::scroll_callback(GLFWwindow * w, double x_offset, double y_offset){
+    if (ImGui::IsAnyWindowHovered()) {
+        ImGui_ImplGlfw_ScrollCallback(w, x_offset, y_offset);
+        return;
+    }
     this->myCamera.update_zoom(y_offset);
 }
 
@@ -462,6 +482,9 @@ void WindowManagement::key_callback(GLFWwindow * window, int key, int scancode, 
         case GLFW_KEY_KP_SUBTRACT:
             this->myCamera.update_far(-10.0);
             break;
+        // case GLFW_KEY_LEFT_CONTROL:
+        //     ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+        //     break;
         // case GLFW_KEY_C:
         //     this->myModel.update_clip(10.0, this->myModel.x, this->myModel.y, this->myModel.z);
         //     break;

@@ -216,8 +216,9 @@ vector<float> Volume::get_histogram(){
 }
 
 vector<vector<float> > Volume::get_mk_table(){
-    vector<vector<float> > mk_table(256, vector<float>(100, 0.0f));
-    float gradient_range = this->max_gradient - this->min_gradient;
+    vector<vector<float> > mk_table(256, vector<float>(160, 0.0f));
+    const float gMax = 256.0f; // 20 * log_2(256)
+    // float gradient_range = this->max_gradient - this->min_gradient;
     float value_range = this->max - this->min;
     int max_mk_table = 0;
     int _m = 0, _k = 0;
@@ -225,10 +226,15 @@ vector<vector<float> > Volume::get_mk_table(){
     for(size_t i = 0; i < this->data.size(); i++){
         for(size_t j = 0; j < this->data[0].size(); j++){
             for(size_t k = 0; k < this->data[0][0].size(); k++){
-                _m = (this->data[i][j][k]*256.0f/value_range);
-                _k = (glm::l2Norm(this->gradient[i][j][k])*100.0f/gradient_range);
+                _m = ((this->data[i][j][k]-this->min)/value_range)*255;
+                float l2norm = glm::l2Norm(this->gradient[i][j][k]);
+                if (l2norm < 1.0f) l2norm = 1.0f;
+                if (l2norm > gMax) l2norm = gMax;
+                l2norm = 20 * log2(l2norm);
+                // _k = ((glm::l2Norm(this->gradient[i][j][k])-this->min_gradient)/gradient_range)*159;
+                _k = l2norm;
                 if (_m > 255) _m = 255;
-                if (_k > 99) _k = 99;
+                if (_k > 159) _k = 159;
                 mk_table[_m][_k] += 1.0f;
                 if(mk_table[_m][_k] > max_mk_table) max_mk_table = mk_table[_m][_k];
             }
@@ -237,7 +243,7 @@ vector<vector<float> > Volume::get_mk_table(){
 
     for(size_t m = 0; m < mk_table.size(); m++){
         for(size_t k = 0; k < mk_table[0].size(); k++){
-            mk_table[m][k] /= max_mk_table;
+            mk_table[m][k] = 20 * log2(mk_table[m][k]);
         }
     }
     return mk_table;
