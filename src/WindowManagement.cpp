@@ -573,8 +573,8 @@ void WindowManagement::draw(){
             this->shaders[METHODS::VOLUME_RENDERING].set_uniform("matrix", this->transformation.matrix);
             this->shaders[METHODS::VOLUME_RENDERING].set_uniform("clip_plane", glm::vec4(this->x, this->y, this->z, this->clip));
             this->shaders[METHODS::VOLUME_RENDERING].set_uniform("light_pos", -this->myCamera.get_position());
-            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("light_color", this->myCamera.get_position());
-            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("view_pos", glm::vec3(1.0f));
+            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("view_pos", this->myCamera.get_position());
+            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("light_color", glm::vec3(1.0f));
 
             if (((VolumeRendering *)(this->models[i].method))->axis_aligned(this->myCamera.get_direction())) {
                 this->models[i].update_vao_data();

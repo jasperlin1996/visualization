@@ -52,7 +52,7 @@ void VolumeRendering::gen_texture_1d(){
         this->texture_1d[i + 0] = 0;
         this->texture_1d[i + 1] = 1;
         this->texture_1d[i + 2] = 0;
-        this->texture_1d[i + 3] = 0.03;
+        this->texture_1d[i + 3] = 0.1;
     }
     
     for (size_t i = 193*4; i < 199 * 4; i += 4) {
@@ -66,7 +66,7 @@ void VolumeRendering::gen_texture_1d(){
         this->texture_1d[i + 0] = 0;
         this->texture_1d[i + 1] = 0;
         this->texture_1d[i + 2] = 1;
-        this->texture_1d[i + 3] = 0.007;
+        this->texture_1d[i + 3] = 0.07;
     }
 
     // for (size_t i = 0; i < this->texture_1d.size(); i += 4) {
@@ -91,7 +91,8 @@ void VolumeRendering::gen_texture_3d(){
                 int index = (z * data_shape.x * data_shape.y + y * data_shape.x + x) * 4;
     
                 // without normalization, should be done in shader
-                glm::vec3 normal = super::Method::volume.get_gradient(glm::vec3(x, y, z));
+                glm::vec3 gradient = super::Method::volume.get_gradient(glm::vec3(x, y, z));
+                glm::vec3 normal = glm::normalize(gradient);
                 float value = (super::Method::volume(x, y, z) - min) / max;
                 glm::vec4 voxel = glm::vec4(normal, value);
 

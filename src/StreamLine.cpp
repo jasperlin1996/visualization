@@ -48,7 +48,9 @@ void StreamLine::load_data(string filename) {
 }
 
 void StreamLine::run(){
-    this->generate_streamline();   
+    this->generate_table();
+    // this->generate_streamline();
+    this->generate_streamline_grid(); 
 }
 
 bool StreamLine::is_inside(glm::vec2 position){
@@ -90,19 +92,73 @@ glm::vec2 StreamLine::rk2(glm::vec2 position, float h){
     return result;
 }
 
+void StreamLine::generate_table(){
+    const int grid_size = 64;
+    this->grid_table.resize(grid_size, vector<bool>(grid_size, false));
+}
+
+void StreamLine::generate_streamline_grid(){
+    const float threshold = 0.0001f, h = 0.05f;
+    const int iterations_limit = 10000;
+    this->total_point_size = 0;
+    float stride = (float)(this->data.size()) / this->grid_table.size();
+    for (int way = 1; way != -3; way -= 2) {
+        for (size_t i = 0; i < this->grid_table.size() - 1; i++) {
+            for (size_t j = 0; j < this->grid_table.size() - 1; j++) {
+                glm::vec2 point((i + 0.5) * stride, (j + 0.5) * stride);
+                int grid_table_x_1 = (int)(point.x/stride), grid_table_x_2;
+                int grid_table_y_1 = (int)(point.y/stride), grid_table_y_2;
+
+                if ((way == 1) && this->grid_table[grid_table_x_1][grid_table_y_1]) {
+                    break;
+                }
+                this->grid_table[grid_table_x_1][grid_table_y_1] = true;
+                this->streamlines.push_back(vector<glm::vec2>(0));
+
+                for (int k = 0; k < iterations_limit; k++) {
+                    glm::vec2 point_2 = rk2(point, way*h);
+                    if(!this->is_inside(point_2)) break;
+                    grid_table_x_2 = (int)(point_2.x/stride);
+                    grid_table_y_2 = (int)(point_2.y/stride);
+                    
+                    // if cross grid, update grid_table
+                    bool x_change = (grid_table_x_1 != grid_table_x_2);
+                    bool y_change = (grid_table_y_1 != grid_table_y_2);
+                    if (x_change || y_change) {
+                        if (this->grid_table[grid_table_x_2][grid_table_y_2]) break;
+                        else {
+                            this->grid_table[grid_table_x_2][grid_table_y_2] = true;
+                            grid_table_x_1 = grid_table_x_2;
+                            grid_table_y_1 = grid_table_y_2;
+                        }
+                    }
+
+                    this->streamlines.back().push_back(point_2);
+                    if (glm::distance(point, point_2) < threshold) {
+                        break;
+                    }
+                    point = point_2;
+                }
+                this->total_point_size += this->streamlines.back().size();
+            }
+        }
+    }
+    cout << "total_point_size: " << this->total_point_size << endl;
+}
+
 void StreamLine::generate_streamline(){ // based on data_points, non-bidirectional
-    const float threashold = 0.00001f, h = 0.1f;
+    const float threshold = 0.00001f, h = 0.1f;
     const int iterations_limit = 100;
     this->total_point_size = 0;
 
     for (size_t i = 0; i < this->data.size(); i++) {
         for (size_t j = 0; j < this->data[i].size(); j++) {
-            glm::vec2 point(i, j);
+            glm::vec2 point(i + 0.5f, j + 0.5f);
             this->streamlines.push_back(vector<glm::vec2>(0));
             for (int k = 0; k < iterations_limit; k++) {
                 glm::vec2 point_2 = rk2(point, h);
                 this->streamlines.back().push_back(point_2);
-                if (glm::distance(point, point_2) < threashold) {
+                if (glm::distance(point, point_2) < threshold) {
                     break;
                 }
                 point = point_2;
@@ -117,6 +173,7 @@ void StreamLine::generate_streamline(){ // based on data_points, non-bidirection
 // }
 
 vector<float> StreamLine::get_data(){
+    cout << "get data\n";
     vector<float> temp(this->total_point_size * (2 + 4 + 1));
     int vertex_counter = 0;
     for (size_t i = 0; i < this->streamlines.size(); i++) {
@@ -124,7 +181,8 @@ vector<float> StreamLine::get_data(){
         float point_delta = (point_size - 1.0f)/this->streamlines[i].size();
         for(size_t j = 0; j < this->streamlines[i].size(); j++, vertex_counter += 7, point_size -= point_delta) {
             float magnitude = glm::length(this->vector_interpolation(this->streamlines[i][j]));
-            glm::vec3 color = this->transfer_function((magnitude - this->min_vector_magnitude)/(this->max_vector_magnitude - this->min_vector_magnitude));
+            // glm::vec3 color = this->transfer_function((magnitude - this->min_vector_magnitude)/(this->max_vector_magnitude - this->min_vector_magnitude));
+            glm::vec3 color = this->transfer_function(magnitude);
             temp[vertex_counter + 0] = this->streamlines[i][j].x;
             temp[vertex_counter + 1] = this->streamlines[i][j].y;
             temp[vertex_counter + 2] = color.r;
@@ -139,5 +197,5 @@ vector<float> StreamLine::get_data(){
 }
 
 glm::vec3 StreamLine::transfer_function(float magnitude){
-    return glm::vec3(1.0f, min(1.0f, 1.0f - 3 * magnitude), min(1.0f, 1.0f - 3* magnitude));
+    return glm::vec3(1.0f, max(0.0f, 1.0f - 1 * magnitude), max(0.0f, 1.0f - 1 * magnitude));
 }

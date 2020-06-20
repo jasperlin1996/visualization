@@ -15,7 +15,7 @@ uniform vec3 light_color;
 
 void main(){
     if (check < 0.0) {
-        // discard;
+        discard;
     }
 
     vec4 hold = texture(texture_3d, fragment_texture_pos);
@@ -47,6 +47,6 @@ void main(){
     vec4 coefficient = vec4(clamp((ambient + diffuse + specular), vec3(0.0), vec3(1.0)), 1.0);
     
     vec4 result = coefficient * object_color;
-    // fragment_color = vec4(result);
+    fragment_color = vec4(result);
     // fragment_color = vec4(fragment_texture_pos.xyz, 0.01);
 }
