@@ -11,5 +11,5 @@ void main(){
     object_color = color;
     
     gl_PointSize = scale;
-    gl_Position = matrix * vec4(pos, 0.0, 1.0);
+    gl_Position = matrix * vec4(pos, 1.0, 1.0);
 }
