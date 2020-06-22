@@ -93,58 +93,118 @@ glm::vec2 StreamLine::rk2(glm::vec2 position, float h){
 }
 
 void StreamLine::generate_table(){
-    const int grid_size = 50;
+    const int grid_size = 64;
     this->grid_table.clear();
-    this->grid_table.resize(grid_size, vector<bool>(grid_size, false));
+    this->grid_table.resize(grid_size, deque<bool>(grid_size, false));
+}
+
+void StreamLine::extend_streamline(
+    vector<glm::vec2> &streamline,
+    glm::vec2 init_point,
+    glm::vec2 stride,
+    const int iterations_limit,
+    int direction,
+    float h,
+    float threshold
+){
+    glm::vec2 point_1 = init_point;
+    int grid_table_x_1 = (int)(point_1.x/stride.x), grid_table_x_2;
+    int grid_table_y_1 = (int)(point_1.y/stride.y), grid_table_y_2;
+
+    // if streamline growth forward
+    // if (/*direction == 1 && */this->grid_table[grid_table_x_1][grid_table_y_1]) return;
+
+    this->grid_table[grid_table_x_1][grid_table_y_1] = true;
+    bool x_change, y_change;
+    
+    vector<glm::vec2> temp(0);
+
+    for (int k = 0; k < iterations_limit; k++) {
+        glm::vec2 point_2 = rk2(point_1, direction*h);
+        if(!this->is_inside(point_2)) break;
+
+        grid_table_x_2 = (int)(point_2.x/stride.x);
+        grid_table_y_2 = (int)(point_2.y/stride.y);
+
+        x_change = (grid_table_x_1 != grid_table_x_2);
+        y_change = (grid_table_y_1 != grid_table_y_2);
+
+        // if cross grid, update grid_table
+        x_change = (grid_table_x_1 != grid_table_x_2);
+        // if x or y grid change
+        if (x_change || y_change) {
+            if (this->grid_table[grid_table_x_2][grid_table_y_2]) break;
+            else {
+                this->grid_table[grid_table_x_2][grid_table_y_2] = true;
+                grid_table_x_1 = grid_table_x_2;
+                grid_table_y_1 = grid_table_y_2;
+            }
+        }
+        temp.push_back(point_2);
+        if (glm::distance(point_1, point_2) < threshold) break;
+        point_1 = point_2;
+    }
+    // reverse backward streamline
+    if (direction == 1) reverse(temp.begin(), temp.end());
+    streamline.insert(streamline.end(), temp.begin(), temp.end());
+    return;
 }
 
 void StreamLine::generate_streamline_grid(){
-    const float threshold = 0.0001f, h = 0.1f;
+    const float threshold = 0.0001f, h = 0.2f;
     const int iterations_limit = 10000;
     this->total_point_size = 0;
-    float stride_x = (float)(this->data.size()) / this->grid_table.size();
-    float stride_y = (float)(this->data[0].size()) / this->grid_table.size();
-        // this->generate_table();
+    glm::vec2 stride((float)(this->data.size()) / this->grid_table.size(), (float)(this->data[0].size()) / this->grid_table.size());
+    // float stride_x = (float)(this->data.size()) / this->grid_table.size();
+    // float stride_y = (float)(this->data[0].size()) / this->grid_table.size();
+
     for (size_t i = 0; i < this->grid_table.size() - 1; i++) {
         for (size_t j = 0; j < this->grid_table.size() - 1; j++) {
-            glm::vec2 point((i + 0.5) * stride_x, (j + 0.5) * stride_y);
-            int grid_table_x_1 = (int)(point.x/stride_x), grid_table_x_2;
-            int grid_table_y_1 = (int)(point.y/stride_y), grid_table_y_2;
+            glm::vec2 point((i + 0.5) * stride.x, (j + 0.5) * stride.y);
+            int grid_table_x_1 = (int)(point.x/stride.x), grid_table_x_2;
+            int grid_table_y_1 = (int)(point.y/stride.y), grid_table_y_2;
 
             if (this->grid_table[grid_table_x_1][grid_table_y_1]) {
                 continue;
             }
-            for (int way = 1; way != -3; way -= 2) {
-                this->grid_table[grid_table_x_1][grid_table_y_1] = true;
-                this->streamlines.push_back(vector<glm::vec2>(0));
-                bool x_change = false, y_change = false;
-                for (int k = 0; k < iterations_limit; k++) {
-                    glm::vec2 point_2 = rk2(point, way*h);
-                    if(!this->is_inside(point_2)) break;
-                    grid_table_x_2 = (int)(point_2.x/stride_x);
-                    grid_table_y_2 = (int)(point_2.y/stride_y);
+
+            this->grid_table[grid_table_x_1][grid_table_y_1] = true;
+            this->streamlines.push_back(vector<glm::vec2>(0));
+
+            // backward first then forward
+            this->extend_streamline(this->streamlines.back(), point, stride, iterations_limit, 1, h, threshold);
+            this->extend_streamline(this->streamlines.back(), point, stride, iterations_limit, -1, h, threshold);
+
+            this->total_point_size += this->streamlines.back().size();
+            // for (int way = 1; way != -3; way -= 2) {
+            //     bool x_change = false, y_change = false;
+            //     for (int k = 0; k < iterations_limit; k++) {
+            //         glm::vec2 point_2 = rk2(point, way*h);
+            //         if(!this->is_inside(point_2)) break;
+            //         grid_table_x_2 = (int)(point_2.x/stride.x);
+            //         grid_table_y_2 = (int)(point_2.y/stride.y);
                     
-                    // if cross grid, update grid_table
-                    x_change = (grid_table_x_1 != grid_table_x_2);
-                    y_change = (grid_table_y_1 != grid_table_y_2);
+            //         // if cross grid, update grid_table
+            //         x_change = (grid_table_x_1 != grid_table_x_2);
+            //         y_change = (grid_table_y_1 != grid_table_y_2);
 
-                    if (x_change || y_change) {
-                        if (this->grid_table[grid_table_x_2][grid_table_y_2]) break;
-                        else {
-                            this->grid_table[grid_table_x_2][grid_table_y_2] = true;
-                            grid_table_x_1 = grid_table_x_2;
-                            grid_table_y_1 = grid_table_y_2;
-                        }
-                    }
+            //         if (x_change || y_change) {
+            //             if (this->grid_table[grid_table_x_2][grid_table_y_2]) break;
+            //             else {
+            //                 this->grid_table[grid_table_x_2][grid_table_y_2] = true;
+            //                 grid_table_x_1 = grid_table_x_2;
+            //                 grid_table_y_1 = grid_table_y_2;
+            //             }
+            //         }
 
-                    this->streamlines.back().push_back(point_2);
-                    if (glm::distance(point, point_2) < threshold) {
-                        break;
-                    }
-                    point = point_2;
-                }
-                this->total_point_size += this->streamlines.back().size();
-            }
+            //         this->streamlines.back().push_back(point_2);
+            //         if (glm::distance(point, point_2) < threshold) {
+            //             break;
+            //         }
+            //         point = point_2;
+            //     }
+            //     this->total_point_size += this->streamlines.back().size();
+            // }
         }
     }
     cout << "total_point_size: " << this->total_point_size << endl;

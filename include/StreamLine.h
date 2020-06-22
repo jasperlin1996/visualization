@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <deque>
 
 class StreamLine: public Method{
     using super = Method;
@@ -28,9 +29,12 @@ public:
     void generate_streamline_grid();
 private:
     glm::ivec2 data_shape;
-    vector<vector<bool> > grid_table;
+    // vector<vector<bool> > grid_table;
+    vector<deque<bool> > grid_table; // due to c++ vector<bool>'s problem
     vector<vector<glm::vec2> > data;
     vector<vector<glm::vec2> > streamlines;
     float min_vector_magnitude, max_vector_magnitude;
     int total_point_size;
+
+    void extend_streamline(vector<glm::vec2> &, glm::vec2, glm::vec2, const int, int, float, float);
 };
