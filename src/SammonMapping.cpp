@@ -216,7 +216,9 @@ void SammonMapping::run() {
     }
 
     float lambda = 0.3, alpha = 0.3; // magic number by adkevin3307
+    float error_sum = 0.0f;
     while(iterations_limit--) {
+        error_sum = 0.0f;
         for (size_t i = 0; i < this->Q.size(); i++) {
             for (size_t j = 0; j < this->Q.size(); j++) {
                 if (j == i) continue;
@@ -229,15 +231,16 @@ void SammonMapping::run() {
                 glm::vec2 delta_Qi = lambda * ((this->original_distances[i][j] - dij)/dij) * (this->Q[i] - this->Q[j]);
                 glm::vec2 delta_Qj = -delta_Qi;
 
-                if (glm::length(delta_Qi) < epsilon) break;
+                error_sum += glm::length(delta_Qi);
 
                 this->Q[i] = this->Q[i] + delta_Qi;
                 this->Q[j] = this->Q[j] + delta_Qj;
             }
         }
         lambda = alpha * lambda;
+        if (error_sum < epsilon) break;
     }
-    cout << "run\n";
+    cout << "Iterations: " << 10000 - iterations_limit << endl;
 }
 
 vector<float> SammonMapping::get_data() {
