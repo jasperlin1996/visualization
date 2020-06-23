@@ -27,7 +27,10 @@ rm =
 
 
 ifeq ($(OS),Windows_NT)
-	CCFLAGS = $(windows-args)
+	CXX = cmd.exe /c g++
+	EXE = main.exe
+
+	LIBS = $(windows-args)
 
 	mkdir = if not exist $(OBJ_DIR) mkdir $(OBJ_DIR)
 
