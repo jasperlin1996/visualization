@@ -1,7 +1,10 @@
 #include "Model.h"
 
 Model::Model(){
-
+    // // TODO: delete this shit for hardcore sammon mapping
+    // this->method = new SammonMapping();
+    // this->use_texture = false;
+    // this->textures.resize(0);
 }
 
 Model::Model(
@@ -24,6 +27,9 @@ Model::Model(
             break;
         case METHODS::STREAM_LINE:
             this->method = new StreamLine(this->inf_filename);
+            break;
+        case METHODS::SAMMON_MAPPING:
+            this->method = new SammonMapping(this->inf_filename, this->raw_filename);
             break;
         default:
             break;
@@ -79,7 +85,6 @@ void Model::run(){
 void Model::draw(){
     switch (this->method_choice) {
         case METHODS::ISO_SURFACE:
-            // VAOManagement::drawVAO(this->vao, GL_TRIANGLES, GL_FILL);
             VAOManagement::drawVAO(this->vao, this->use_texture, this->textures, GL_TRIANGLES, GL_FILL);
             break;
         case METHODS::VOLUME_RENDERING:
@@ -87,6 +92,10 @@ void Model::draw(){
             break;
         case METHODS::STREAM_LINE:
             VAOManagement::drawVAO(this->vao, this->use_texture, this->textures, GL_POINTS, GL_FILL);
+            break;
+        case METHODS::SAMMON_MAPPING:
+            VAOManagement::drawVAO(this->vao, this->use_texture, this->textures, GL_POINTS, GL_FILL);
+            break;
         default:
             break;
     }
@@ -108,6 +117,11 @@ void Model::set_vao_data(){
         case (METHODS::STREAM_LINE): {
             vector<int> vao_setting{2, 4, 1};
             this->vao.push_back(VAOManagement::generateVAO(((StreamLine *)(this->method))->get_data(), vao_setting));
+            break;
+        }
+        case (METHODS::SAMMON_MAPPING): {
+            vector<int> vao_setting{2, 3};
+            this->vao.push_back(VAOManagement::generateVAO(((SammonMapping *)(this->method))->get_data(), vao_setting));
             break;
         }
         default:

@@ -190,9 +190,11 @@ bool WindowManagement::init(float w, float h, string window_name) {
     this->shaders[METHODS::ISO_SURFACE] = Shader("./src/shader/iso_surface/shader.vert", "./src/shader/iso_surface/shader.frag");
     this->shaders[METHODS::VOLUME_RENDERING] = Shader("./src/shader/slicing/shader.vert", "./src/shader/slicing/shader.frag");
     this->shaders[METHODS::STREAM_LINE] = Shader("./src/shader/stream_line/shader.vert", "./src/shader/stream_line/shader.frag");
+    this->shaders[METHODS::SAMMON_MAPPING] = Shader("./src/shader/sammon_mapping/shader.vert", "./src/shader/sammon_mapping/shader.frag");
     cout << "Shader ID: " << this->shaders[METHODS::ISO_SURFACE].ID << endl;
     cout << "Shader ID: " << this->shaders[METHODS::VOLUME_RENDERING].ID << endl;
     cout << "Shader ID: " << this->shaders[METHODS::STREAM_LINE].ID << endl;
+    cout << "Shader ID: " << this->shaders[METHODS::SAMMON_MAPPING].ID << endl;
     cout << "Shader Created!\n";
 
     this->myCamera = Camera(w, h);
@@ -234,6 +236,7 @@ void WindowManagement::generate_combo(){
     this->methods["Iso Surface"] = METHODS::ISO_SURFACE;
     this->methods["Slicing"] = METHODS::VOLUME_RENDERING;
     this->methods["Stream Line"] = METHODS::STREAM_LINE;
+    this->methods["Sammon Mapping"] = METHODS::SAMMON_MAPPING;
 
     // generate filenames combo
     DIR *dp;
@@ -247,6 +250,7 @@ void WindowManagement::generate_combo(){
             if(index != string::npos) this->scalar_filenames.push_back(temp.substr(0, index));
         }
     }
+    closedir(dp);
     if((dp = opendir("./Data/Vector")) != NULL){
         while((dirp = readdir(dp)) != NULL){
             string temp = dirp->d_name;
@@ -255,8 +259,12 @@ void WindowManagement::generate_combo(){
             if(index != string::npos) this->vector_filenames.push_back(temp.substr(0, index));
         }
     }
+    closedir(dp);
     sort(this->scalar_filenames.begin(), this->scalar_filenames.end());
     sort(this->vector_filenames.begin(), this->vector_filenames.end());
+
+    this->high_dim_filenames.push_back("Iris");
+    
 }
 
 
@@ -299,6 +307,9 @@ void WindowManagement::gui(){
                 }
                 else if (current_method == METHODS::STREAM_LINE) {
                     filenames = this->vector_filenames;
+                }
+                else if (current_method == METHODS::SAMMON_MAPPING) {
+                    filenames = this->high_dim_filenames;
                 }
                 selected_filename = filenames[0];
             }
@@ -369,24 +380,23 @@ void WindowManagement::gui(){
             this->models.back().update_vao_data();
         }
     }
-    ImGui::Text("Slicing Plane");
+    if (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING) { 
+        ImGui::Text("Slicing Plane");
 
 
-    ImGui::SliderFloat("x", &(this->x), -1.0f, 1.0f);
-    ImGui::SliderFloat("y", &(this->y), -1.0f, 1.0f);
-    ImGui::SliderFloat("z", &(this->z), -1.0f, 1.0f);
-    ImGui::SliderFloat("clip", &(this->clip), -100.0f, 100.0f);
-    {
-        float length = sqrt(this->x*this->x+this->y*this->y+this->z*this->z);
-        if (length <= 0.01) length = 0.01;
-        this->x /= length;
-        this->y /= length;
-        this->z /= length;
-        // this->myModel.update_clip(clip, x, y, z);
-        // this->transformation.update_clip(clip, x, y, z);
+        ImGui::SliderFloat("x", &(this->x), -1.0f, 1.0f);
+        ImGui::SliderFloat("y", &(this->y), -1.0f, 1.0f);
+        ImGui::SliderFloat("z", &(this->z), -1.0f, 1.0f);
+        ImGui::SliderFloat("clip", &(this->clip), -100.0f, 100.0f);
+        {
+            float length = sqrt(this->x*this->x+this->y*this->y+this->z*this->z);
+            if (length <= 0.01) length = 0.01;
+            this->x /= length;
+            this->y /= length;
+            this->z /= length;
+        }
     }
     ImGui::End();
-
 
     if (is_load && (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING)) {
         // set historgram position
@@ -439,7 +449,7 @@ void WindowManagement::mainLoop(){
 
         // gui and draw
         this->gui();
-        ImPlot::ShowDemoWindow();
+        // ImPlot::ShowDemoWindow();
 
         glfwGetFramebufferSize(this->window, (int*)&(this->width), (int*)&(this->height));
 
@@ -583,6 +593,9 @@ void WindowManagement::draw(){
         else if (last_method == METHODS::STREAM_LINE) {
             this->shaders[METHODS::STREAM_LINE].set_uniform("matrix", this->transformation.matrix);
         }
+        else if (last_method == METHODS::SAMMON_MAPPING) {
+            this->shaders[METHODS::SAMMON_MAPPING].set_uniform("matrix", this->transformation.matrix);
+        }
         // Only enable models with same method with the last model
         if (this->models[i].get_method_choice() == last_method) {
             this->models[i].draw();
@@ -650,6 +663,17 @@ void WindowManagement::load(string filename, METHODS method, bool update){
             cout << filename << endl;
             Model temp_model(filename + ".vec", method);
             ((StreamLine *)temp_model.method)->run();
+
+            this->models.push_back(temp_model);
+            break;
+        }
+        case (METHODS::SAMMON_MAPPING): {
+            cout << "Method: Sammon Mapping\n";
+
+            filename = data_dir + "/Scalar/" + filename;
+            cout << filename << endl;
+            Model temp_model(filename + ".inf", filename + ".raw", method);
+            ((SammonMapping *)temp_model.method)->run();
 
             this->models.push_back(temp_model);
             break;

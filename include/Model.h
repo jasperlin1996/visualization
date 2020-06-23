@@ -12,6 +12,7 @@
 #include "IsoSurface.h"
 #include "VolumeRendering.h"
 #include "StreamLine.h"
+#include "SammonMapping.h"
 
 class Model{
 public:
