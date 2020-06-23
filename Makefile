@@ -20,7 +20,7 @@ SOURCES += $(wildcard src/implot/*.cpp)
 OBJS    = $(addprefix $(OBJ_DIR)/, $(addsuffix .o, $(basename $(notdir $(SOURCES)))))
 LIBS    = -L./lib
 
-CXXFLAGS= -std=c++17 -I./include -Wall
+CXXFLAGS= -std=c++17 -I./include -Wall -O3
 
 mkdir = 
 rm = 
