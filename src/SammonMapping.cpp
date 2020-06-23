@@ -198,6 +198,9 @@ void SammonMapping::run() {
 
     auto randfun = bind(dis, gen);
 
+    // normalize features first
+    this->feature_normalize();
+
     // Compute d'ij
     this->original_distances.resize(this->data.size(), vector<float>(this->data.size(), 0.0f));
     for (size_t i = 0; i < this->original_distances.size(); i++) {
@@ -234,6 +237,7 @@ void SammonMapping::run() {
         }
         lambda = alpha * lambda;
     }
+    cout << "run\n";
 }
 
 vector<float> SammonMapping::get_data() {
@@ -245,10 +249,29 @@ vector<float> SammonMapping::get_data() {
         result[i * 5 + 2] = (this->label[i] == 0);
         result[i * 5 + 3] = (this->label[i] == 1);
         result[i * 5 + 4] = (this->label[i] == 2);
-        // result[i * 5 + 2] = 1.0f;
-        // result[i * 5 + 3] = 0.0f;
-        // result[i * 5 + 4] = 0.0f;
     }
 
     return result;
+}
+
+// Assume data is a 2D vector which 1st dimension is the size of data,
+// and the 2nd is the size of feature.
+// 0-1 normalization, clustering is preserved.
+void SammonMapping::feature_normalize() {
+    // if data is empty
+    if (this->data.size() < 1) return;
+
+    glm::ivec2 data_shape(this->data.size(), this->data[0].size());
+    
+    for (int features = 0; features < data_shape[1]; features++) {
+        float min_value = this->data[0][features], max_value = this->data[0][features];
+        for (size_t i = 0; i < this->data.size(); i++) {
+            if (min_value > this->data[i][features]) min_value = this->data[i][features];
+            if (max_value < this->data[i][features]) max_value = this->data[i][features];
+        }
+        for (size_t i = 0; i < this->data.size(); i++) {
+            // 0-1 normalize
+            this->data[i][features] = (this->data[i][features] - min_value)/(max_value - min_value);
+        }
+    }
 }

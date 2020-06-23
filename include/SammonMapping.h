@@ -18,7 +18,9 @@ public:
     float distance(vector<float>, vector<float>);
     void run();
     vector<float> get_data();
+    void feature_normalize();
 private:
+    string inf_filename, raw_fliename;
     vector<vector<float> > data;
     vector<int> label;
     vector<vector<float> > original_distances;

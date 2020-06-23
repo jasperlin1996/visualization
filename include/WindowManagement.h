@@ -48,6 +48,6 @@ private:
     map<METHODS, Shader> shaders;
     vector<Model> models;
     map<string, METHODS> methods;
-    vector<string> scalar_filenames, vector_filenames;
+    vector<string> scalar_filenames, vector_filenames, high_dim_filenames;
     GLFWwindow * window;
 };

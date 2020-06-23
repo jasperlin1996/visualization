@@ -250,6 +250,7 @@ void WindowManagement::generate_combo(){
             if(index != string::npos) this->scalar_filenames.push_back(temp.substr(0, index));
         }
     }
+    closedir(dp);
     if((dp = opendir("./Data/Vector")) != NULL){
         while((dirp = readdir(dp)) != NULL){
             string temp = dirp->d_name;
@@ -258,8 +259,12 @@ void WindowManagement::generate_combo(){
             if(index != string::npos) this->vector_filenames.push_back(temp.substr(0, index));
         }
     }
+    closedir(dp);
     sort(this->scalar_filenames.begin(), this->scalar_filenames.end());
     sort(this->vector_filenames.begin(), this->vector_filenames.end());
+
+    this->high_dim_filenames.push_back("Iris");
+    
 }
 
 
@@ -297,11 +302,14 @@ void WindowManagement::gui(){
                 is_load = false;
                 is_show = false;
                 current_method = this->methods[selected_method];
-                if (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING || current_method == METHODS::SAMMON_MAPPING) {
+                if (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING) {
                     filenames = this->scalar_filenames;
                 }
                 else if (current_method == METHODS::STREAM_LINE) {
                     filenames = this->vector_filenames;
+                }
+                else if (current_method == METHODS::SAMMON_MAPPING) {
+                    filenames = this->high_dim_filenames;
                 }
                 selected_filename = filenames[0];
             }
@@ -372,24 +380,23 @@ void WindowManagement::gui(){
             this->models.back().update_vao_data();
         }
     }
-    ImGui::Text("Slicing Plane");
+    if (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING) { 
+        ImGui::Text("Slicing Plane");
 
 
-    ImGui::SliderFloat("x", &(this->x), -1.0f, 1.0f);
-    ImGui::SliderFloat("y", &(this->y), -1.0f, 1.0f);
-    ImGui::SliderFloat("z", &(this->z), -1.0f, 1.0f);
-    ImGui::SliderFloat("clip", &(this->clip), -100.0f, 100.0f);
-    {
-        float length = sqrt(this->x*this->x+this->y*this->y+this->z*this->z);
-        if (length <= 0.01) length = 0.01;
-        this->x /= length;
-        this->y /= length;
-        this->z /= length;
-        // this->myModel.update_clip(clip, x, y, z);
-        // this->transformation.update_clip(clip, x, y, z);
+        ImGui::SliderFloat("x", &(this->x), -1.0f, 1.0f);
+        ImGui::SliderFloat("y", &(this->y), -1.0f, 1.0f);
+        ImGui::SliderFloat("z", &(this->z), -1.0f, 1.0f);
+        ImGui::SliderFloat("clip", &(this->clip), -100.0f, 100.0f);
+        {
+            float length = sqrt(this->x*this->x+this->y*this->y+this->z*this->z);
+            if (length <= 0.01) length = 0.01;
+            this->x /= length;
+            this->y /= length;
+            this->z /= length;
+        }
     }
     ImGui::End();
-
 
     if (is_load && (current_method == METHODS::ISO_SURFACE || current_method == METHODS::VOLUME_RENDERING)) {
         // set historgram position
@@ -442,7 +449,7 @@ void WindowManagement::mainLoop(){
 
         // gui and draw
         this->gui();
-        ImPlot::ShowDemoWindow();
+        // ImPlot::ShowDemoWindow();
 
         glfwGetFramebufferSize(this->window, (int*)&(this->width), (int*)&(this->height));
 
@@ -576,8 +583,8 @@ void WindowManagement::draw(){
             this->shaders[METHODS::VOLUME_RENDERING].set_uniform("matrix", this->transformation.matrix);
             this->shaders[METHODS::VOLUME_RENDERING].set_uniform("clip_plane", glm::vec4(this->x, this->y, this->z, this->clip));
             this->shaders[METHODS::VOLUME_RENDERING].set_uniform("light_pos", -this->myCamera.get_position());
-            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("light_color", this->myCamera.get_position());
-            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("view_pos", glm::vec3(1.0f));
+            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("view_pos", this->myCamera.get_position());
+            this->shaders[METHODS::VOLUME_RENDERING].set_uniform("light_color", glm::vec3(1.0f));
 
             if (((VolumeRendering *)(this->models[i].method))->axis_aligned(this->myCamera.get_direction())) {
                 this->models[i].update_vao_data();

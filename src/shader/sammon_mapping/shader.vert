@@ -9,6 +9,6 @@ uniform mat4 matrix;
 void main(){
     object_color = vec4(color, 1.0f);
     
-    gl_PointSize = 2.0f;
+    gl_PointSize = 5.0f;
     gl_Position = matrix * vec4(pos, 0.0, 1.0);
 }
